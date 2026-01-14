@@ -35,7 +35,7 @@ test('debug registration flow', async ({ page }) => {
     if (await errorMsg.isVisible()) {
       console.log('ERROR: ', await errorMsg.innerText());
     }
-  } catch (e) {
+  } catch {
     console.log('TIMEOUT: No message appeared after 5 seconds.');
     // Maybe it redirected?
     console.log('Current URL:', page.url());

@@ -36,7 +36,7 @@ export function CheckoutForm() {
       clearCart()
       alert('订单创建成功！')
       router.push('/')
-    } catch (error) {
+    } catch {
       alert('下单失败，请重试')
     } finally {
       setLoading(false)

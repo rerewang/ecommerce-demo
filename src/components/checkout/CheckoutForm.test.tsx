@@ -1,9 +1,8 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { CheckoutForm } from './CheckoutForm'
 import { describe, it, expect, vi } from 'vitest'
 import { useCartStore } from '@/store/cart'
 
-// Mock dependencies
 vi.mock('@/store/cart', () => ({
   useCartStore: vi.fn()
 }))
@@ -23,11 +22,11 @@ const mockCartItems = [
 
 describe('CheckoutForm', () => {
   it('renders form fields', () => {
-    (useCartStore as any).mockReturnValue({
+    vi.mocked(useCartStore).mockReturnValue({
       items: mockCartItems,
       getTotalPrice: () => 100,
       clearCart: vi.fn()
-    })
+    } as ReturnType<typeof useCartStore>)
 
     render(<CheckoutForm />)
     
@@ -37,20 +36,17 @@ describe('CheckoutForm', () => {
   })
 
   it('validates required fields', async () => {
-    (useCartStore as any).mockReturnValue({
+    vi.mocked(useCartStore).mockReturnValue({
       items: mockCartItems,
       getTotalPrice: () => 100,
       clearCart: vi.fn()
-    })
+    } as ReturnType<typeof useCartStore>)
 
     render(<CheckoutForm />)
     
     const submitBtn = screen.getByRole('button', { name: /支付/i })
     fireEvent.click(submitBtn)
     
-    // Should show validation errors (HTML5 validation or custom)
-    // Here we just check that console.log wasn't called or check for error messages
-    // For simplicity, we assume HTML required attribute is present
     expect(screen.getByLabelText(/姓名/i)).toBeRequired()
   })
 })

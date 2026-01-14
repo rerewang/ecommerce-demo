@@ -17,8 +17,7 @@ export async function Header() {
         getAll() {
           return cookieStore.getAll()
         },
-        setAll(cookiesToSet) {
-          // View-only, no need to set
+        setAll() {
         },
       },
     }

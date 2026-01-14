@@ -2,19 +2,17 @@
 
 import { ShoppingCart } from 'lucide-react'
 import { useCartStore } from '@/store/cart'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 
 export function CartBadge() {
   const [mounted, setMounted] = useState(false)
   const totalItems = useCartStore(state => state.getTotalItems())
   
-  // Wait for client-side hydration to complete
-  useEffect(() => {
+  if (typeof window !== 'undefined' && !mounted) {
     setMounted(true)
-  }, [])
+  }
 
-  // Use a stable initial render (matches server) until mounted
   const displayCount = mounted ? totalItems : 0
 
   return (

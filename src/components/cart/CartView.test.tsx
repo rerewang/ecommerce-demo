@@ -1,9 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import { CartView } from './CartView'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { CartItem } from '@/store/cart'
 
-// Mock the cart store
 const mockItems: CartItem[] = [
   {
     product: {
@@ -28,10 +27,11 @@ const mockStore = {
   getTotalItems: vi.fn(() => 0),
 }
 
-// We need to mock the hook specifically
+type CartState = typeof mockStore
+type CartSelector<T> = (state: CartState) => T
+
 vi.mock('@/store/cart', () => ({
-  useCartStore: (selector: any) => {
-    // Basic selector logic for testing
+  useCartStore: <T,>(selector: CartSelector<T>) => {
     const state = mockStore
     return selector ? selector(state) : state
   }

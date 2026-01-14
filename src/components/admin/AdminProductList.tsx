@@ -5,7 +5,7 @@ import { getProducts, deleteProduct } from '@/services/products'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
 import type { Product } from '@/types/product'
-import { Edit, Trash2, Plus } from 'lucide-react'
+import { Edit, Trash2 } from 'lucide-react'
 
 export function AdminProductList() {
   const [products, setProducts] = useState<Product[]>([])
@@ -15,8 +15,6 @@ export function AdminProductList() {
     try {
       const data = await getProducts()
       setProducts(data)
-    } catch (error) {
-      console.error(error)
     } finally {
       setLoading(false)
     }
@@ -32,7 +30,7 @@ export function AdminProductList() {
     try {
       await deleteProduct(id)
       setProducts(products.filter(p => p.id !== id))
-    } catch (error) {
+    } catch {
       alert('删除失败')
     }
   }
@@ -40,43 +38,27 @@ export function AdminProductList() {
   if (loading) return <div>加载中...</div>
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left">
-          <thead className="bg-slate-50 border-b border-slate-200">
-            <tr>
-              <th className="p-4 font-medium text-slate-600">商品名称</th>
-              <th className="p-4 font-medium text-slate-600">分类</th>
-              <th className="p-4 font-medium text-slate-600">价格</th>
-              <th className="p-4 font-medium text-slate-600">库存</th>
-              <th className="p-4 font-medium text-slate-600 text-right">操作</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {products.map((product) => (
-              <tr key={product.id} className="hover:bg-slate-50">
-                <td className="p-4 font-medium text-slate-900">{product.name}</td>
-                <td className="p-4 text-slate-600">{product.category}</td>
-                <td className="p-4 text-slate-600">{formatCurrency(product.price)}</td>
-                <td className="p-4 text-slate-600">{product.stock}</td>
-                <td className="p-4 text-right space-x-2">
-                  <Button variant="ghost" size="sm">
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                    onClick={() => handleDelete(product.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    删除
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-4">
+      <h2 className="text-2xl font-heading font-bold text-slate-900">产品管理</h2>
+      
+      <div className="grid gap-4">
+        {products.map(product => (
+          <div key={product.id} className="bg-white p-4 rounded-lg border border-slate-200 flex items-center gap-4">
+            <div className="flex-1">
+              <h3 className="font-semibold">{product.name}</h3>
+              <p className="text-slate-600">{formatCurrency(product.price)}</p>
+              <p className="text-sm text-slate-500">库存: {product.stock}</p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm">
+                <Edit className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => handleDelete(product.id)}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )

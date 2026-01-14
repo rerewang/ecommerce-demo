@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input'
 export function LoginForm() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   
-  const [state, formAction, isPending] = useActionState(async (prev: any, formData: FormData) => {
+  const [state, formAction, isPending] = useActionState(async (_prev: { error?: string; success?: string } | null, formData: FormData) => {
     if (mode === 'login') {
       return await login(formData)
     } else {

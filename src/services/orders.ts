@@ -1,4 +1,3 @@
-import { supabase } from '@/lib/supabase'
 import type { Order, CreateOrderInput } from '@/types/order'
 
 // In a real app, this would interact with a database table 'orders'
