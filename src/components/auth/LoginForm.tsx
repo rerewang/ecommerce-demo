@@ -5,10 +5,12 @@ import { login, signup } from '@/app/login/actions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
+type FormState = { error?: string; success?: string } | null
+
 export function LoginForm() {
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   
-  const [state, formAction, isPending] = useActionState(async (_prev: { error?: string; success?: string } | null, formData: FormData) => {
+  const [state, formAction, isPending] = useActionState(async (_prev: FormState, formData: FormData): Promise<FormState> => {
     if (mode === 'login') {
       return await login(formData)
     } else {

@@ -8,7 +8,7 @@ vi.mock('@/services/products', () => ({
 }))
 
 const mockProducts = [
-  { id: '1', name: 'P1', price: 10, stock: 5, category: 'C1' }
+  { id: '1', name: 'P1', price: 10, stock: 5, category: 'C1', description: 'Desc', image_url: 'img.jpg', created_at: '2024-01-01' }
 ]
 
 describe('AdminProductList', () => {

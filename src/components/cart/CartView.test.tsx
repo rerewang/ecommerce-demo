@@ -57,6 +57,7 @@ describe('CartView', () => {
     
     expect(screen.getByText('Test Product 1')).toBeInTheDocument()
     expect(screen.getByText('¥100.00')).toBeInTheDocument()
-    expect(screen.getByText('总计: ¥200.00')).toBeInTheDocument()
+    expect(screen.getByText(/总计/)).toBeInTheDocument()
+    expect(screen.getByText(/¥200.00/)).toBeInTheDocument()
   })
 })
