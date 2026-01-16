@@ -6,6 +6,21 @@ test.describe('E2E Checkout Flow', () => {
   const password = 'Password123!';
 
   test('should allow user to purchase items', async ({ page }) => {
+    // Mock products API to ensure data availability
+    await page.route('**/rest/v1/products*', async route => {
+      await route.fulfill({
+        json: [{
+          id: 'e2e-product-id',
+          name: 'E2E Test Product',
+          price: 100,
+          stock: 99,
+          category: 'Testing',
+          description: 'A product for E2E testing',
+          image_url: 'https://placehold.co/400'
+        }]
+      });
+    });
+
     // 1. Sign Up
     await page.goto('/login');
     // Switch to signup mode

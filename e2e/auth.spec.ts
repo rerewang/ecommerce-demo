@@ -9,5 +9,5 @@ test('login page renders correctly', async ({ page }) => {
   await page.goto('/login');
   await expect(page.getByLabel('邮箱')).toBeVisible();
   await expect(page.getByLabel('密码')).toBeVisible();
-  await expect(page.getByRole('button', { name: /登录/i })).toBeVisible();
+  await expect(page.getByRole('main').getByRole('button', { name: /登录/i })).toBeVisible();
 });
