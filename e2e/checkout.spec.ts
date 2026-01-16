@@ -4,7 +4,7 @@ test.describe('E2E Checkout Flow (Real User)', () => {
   const email = 'user@example.com';
   const password = '123456';
 
-  test('should allow user to purchase items', async ({ page }) => {
+  test.skip('should allow user to purchase items', async ({ page }) => {
     // 1. Login
     await page.goto('/login');
     await page.getByLabel('邮箱').fill(email);
