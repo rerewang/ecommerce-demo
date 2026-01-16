@@ -30,6 +30,7 @@ export interface OrderItem {
 
 // Frontend view model (extends CartItem with order specific info)
 export interface OrderItemView extends CartItem {
+  id: string
   orderId: string
   purchasedAt: string
 }
