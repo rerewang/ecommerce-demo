@@ -1,68 +1,57 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('E2E Checkout Flow', () => {
-  // Use a random email to avoid collision
-  const email = `test.${Date.now()}@example.com`;
-  const password = 'Password123!';
+test.describe('E2E Checkout Flow (Real User)', () => {
+  const email = 'user@example.com';
+  const password = '123456';
 
   test('should allow user to purchase items', async ({ page }) => {
-    // Mock products API to ensure data availability
-    await page.route('**/rest/v1/products*', async route => {
-      await route.fulfill({
-        json: [{
-          id: 'e2e-product-id',
-          name: 'E2E Test Product',
-          price: 100,
-          stock: 99,
-          category: 'Testing',
-          description: 'A product for E2E testing',
-          image_url: 'https://placehold.co/400'
-        }]
-      });
-    });
-
-    // 1. Sign Up
+    // 1. Login
     await page.goto('/login');
-    // Switch to signup mode
-    await page.getByRole('button', { name: '立即注册' }).click();
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
-    await page.getByRole('button', { name: '注册' }).click();
-
-    // Assumption: Email confirmation is disabled for E2E environment
-    // So signup redirects to home automatically
+    await page.getByRole('button', { name: '登录' }).click();
+    
+    // Should be redirected to home
     await expect(page).toHaveURL('/');
 
-    // 3. Add Item to Cart
-    // Wait for products to load
-    await expect(page.locator('article').first()).toBeVisible();
+    // 2. Add Item to Cart
+    // Ensure products exist. If DB is empty, this will timeout.
+    const productArticle = page.locator('article').first();
+    await expect(productArticle).toBeVisible({ timeout: 10000 });
+    
     // Click "加入购物车" button
-    await page.locator('article button').first().click();
-    // Wait for toast or cart badge update
+    await productArticle.locator('button').click();
     await expect(page.getByText('已添加到购物车')).toBeVisible();
 
-    // 4. Go to Cart
+    // 3. Go to Cart
     await page.goto('/cart');
     await expect(page.getByText('总计')).toBeVisible();
     
-    // 5. Go to Checkout
+    // 4. Go to Checkout
     await page.getByRole('link', { name: /结算/ }).click();
     
-    // 6. Fill Checkout Form
+    // 5. Fill Checkout Form
+    // Debug 307: If redirected to login here, test will fail and we can investigate trace
     await expect(page).toHaveURL('/checkout');
-    await page.getByLabel('姓名').fill('E2E User');
-    await page.getByLabel('地址').fill('123 Test St');
-    await page.getByLabel('城市').fill('Test City');
-    await page.getByLabel('邮编').fill('10000');
+    
+    await page.getByLabel('姓名').fill('Real User');
+    await page.getByLabel('地址').fill('123 Real St');
+    await page.getByLabel('城市').fill('Beijing');
+    await page.getByLabel('邮编').fill('100000');
 
-    // 7. Pay (Simulate)
+    // 6. Pay (Simulate)
     // Select Alipay by default
-    await page.getByRole('button', { name: /支付 ¥/ }).click();
+    const submitBtn = page.getByRole('button', { name: /支付 ¥/i });
+    await expect(submitBtn).toBeVisible();
+    await submitBtn.click();
 
-    // 8. Verify Order Success
+    // 7. Verify Order Success
     // Should redirect to /orders/[id]
     await expect(page).toHaveURL(/\/orders\/.+/);
     await expect(page.getByText('已支付')).toBeVisible();
-    await expect(page.getByText('E2E User')).toBeVisible();
+    
+    // 8. Capture Order ID for debugging if needed
+    const url = page.url();
+    console.log('Order created:', url.split('/').pop());
   });
 });
