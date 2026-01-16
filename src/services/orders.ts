@@ -102,8 +102,8 @@ export async function createOrder(input: CreateOrderInput, userId: string): Prom
   return mapToFrontendOrder(orderData, itemsData as unknown as OrderItemWithProduct[])
 }
 
-export async function getUserOrders(): Promise<Order[]> {
-  const { data: orders, error } = await supabase
+export async function getOrders(status?: OrderStatus): Promise<Order[]> {
+  let query = supabase
     .from('orders')
     .select(`
       *,
@@ -114,10 +114,20 @@ export async function getUserOrders(): Promise<Order[]> {
     `)
     .order('created_at', { ascending: false })
 
+  if (status) {
+    query = query.eq('status', status)
+  }
+
+  const { data: orders, error } = await query
+
   if (error) throw error
   if (!orders) return []
 
   return orders.map(order => mapToFrontendOrder(order, order.items as unknown as OrderItemWithProduct[]))
+}
+
+export async function getUserOrders(): Promise<Order[]> {
+  return getOrders()
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
