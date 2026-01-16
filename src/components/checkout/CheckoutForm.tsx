@@ -1,19 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
 import { createOrder } from '@/services/orders'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { formatCurrency } from '@/lib/utils'
+import { supabase } from '@/lib/supabase'
 
 export function CheckoutForm() {
   const router = useRouter()
   const { items, getTotalPrice, clearCart } = useCartStore()
   const [loading, setLoading] = useState(false)
+  const [checkingAuth, setCheckingAuth] = useState(true)
   
   const total = getTotalPrice()
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.push('/login?redirect=/checkout')
+      } else {
+        setCheckingAuth(false)
+      }
+    }
+    checkAuth()
+  }, [router])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -22,7 +36,14 @@ export function CheckoutForm() {
     const formData = new FormData(e.currentTarget)
     
     try {
-      await createOrder({
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        router.push('/login?redirect=/checkout')
+        return
+      }
+
+      const order = await createOrder({
         items,
         total,
         shippingAddress: {
@@ -31,20 +52,26 @@ export function CheckoutForm() {
           city: formData.get('city') as string,
           zip: formData.get('zip') as string,
         }
-      }, 'temp-user-id') // TODO: Replace with real user ID in Issue #4
+      }, user.id)
       
       clearCart()
-      alert('订单创建成功！')
-      router.push('/')
-    } catch {
-      alert('下单失败，请重试')
+      // Redirect to order details page (will be implemented in Issue #6)
+      router.push(`/orders/${order.id}`)
+    } catch (error) {
+      console.error('Checkout error:', error)
+      const message = error instanceof Error ? error.message : '下单失败，请重试'
+      alert(message)
     } finally {
       setLoading(false)
     }
   }
 
+  if (checkingAuth) {
+    return <div className="p-8 text-center">正在验证登录状态...</div>
+  }
+
   if (items.length === 0) {
-    return <div>购物车为空</div>
+    return <div className="p-8 text-center text-slate-600">购物车为空，去挑选一些商品吧</div>
   }
 
   return (
