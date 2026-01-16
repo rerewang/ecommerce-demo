@@ -9,7 +9,7 @@ test.describe('Admin Flow (Real Admin)', () => {
     await page.goto('/login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
-    await page.getByRole('main').getByRole('button', { name: '登录' }).click();
+    await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
     
     await expect(page).toHaveURL('/');
 
@@ -17,7 +17,7 @@ test.describe('Admin Flow (Real Admin)', () => {
     await page.goto('/admin/orders');
     
     // 3. Verify Access
-    await expect(page.getByText('订单管理')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '订单管理' })).toBeVisible();
     
     // 4. Verify Orders List
     await expect(page.getByText('订单号')).toBeVisible();

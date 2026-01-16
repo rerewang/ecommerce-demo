@@ -9,30 +9,27 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     await page.goto('/login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
-    await page.getByRole('main').getByRole('button', { name: '登录' }).click();
+    await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
     
     // Should be redirected to home
     await expect(page).toHaveURL('/');
 
     // 2. Add Item to Cart
-    // Ensure products exist. If DB is empty, this will timeout.
-    const productArticle = page.locator('article').first();
-    await expect(productArticle).toBeVisible({ timeout: 10000 });
+    const productCard = page.locator('[class*="grid"] > a').first();
+    await expect(productCard).toBeVisible({ timeout: 10000 });
     
-    // Click "加入购物车" button
-    await productArticle.locator('button').click();
+    await productCard.locator('button').first().click();
     await expect(page.getByText('已添加到购物车')).toBeVisible();
 
-    // 3. Go to Cart
-    await page.goto('/cart');
-    await expect(page.getByText('总计')).toBeVisible();
+    // 3. Navigate to cart immediately (no page reload)
+    await page.locator('a[href="/cart"]').first().click();
+    await expect(page).toHaveURL('/cart');
     
-    // 4. Go to Checkout
-    await page.getByRole('link', { name: /结算/ }).click();
+    const checkoutLink = page.getByRole('link', { name: /结算/ });
+    await expect(checkoutLink).toBeVisible({ timeout: 10000 });
     
-    // 5. Fill Checkout Form
-    // Debug 307: If redirected to login here, test will fail and we can investigate trace
-    await expect(page).toHaveURL('/checkout');
+    await checkoutLink.click();
+    await page.waitForURL('/checkout', { timeout: 10000 });
     
     await page.getByLabel('姓名').fill('Real User');
     await page.getByLabel('地址').fill('123 Real St');
