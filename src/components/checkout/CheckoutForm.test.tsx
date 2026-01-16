@@ -35,6 +35,7 @@ describe('CheckoutForm', () => {
     vi.mocked(supabase.auth.getUser).mockResolvedValue({
       data: { user: { id: 'test-user-id' } },
       error: null
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
   })
 
