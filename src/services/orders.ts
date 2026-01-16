@@ -8,8 +8,15 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
 
   return {
     id: Math.random().toString(36).substring(7),
+    userId: 'mock-user-id',
     status: 'pending',
     createdAt: new Date().toISOString(),
-    ...input
+    updatedAt: new Date().toISOString(),
+    ...input,
+    items: input.items.map(item => ({
+      ...item,
+      orderId: 'mock-order-id',
+      purchasedAt: new Date().toISOString()
+    }))
   }
 }
