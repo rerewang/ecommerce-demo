@@ -74,13 +74,17 @@ export async function signup(formData: FormData) {
     }
   )
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
   })
 
   if (error) {
     return { error: '注册失败: ' + error.message }
+  }
+
+  if (data?.session) {
+    redirect('/')
   }
 
   return { success: '注册成功，请检查邮箱验证' }
