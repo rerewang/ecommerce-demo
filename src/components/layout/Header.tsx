@@ -46,6 +46,12 @@ export async function Header() {
             {user ? (
               <>
                 <Link
+                  href="/orders"
+                  className="text-slate-700 hover:text-slate-900 font-medium transition-colors"
+                >
+                  我的订单
+                </Link>
+                <Link
                   href="/admin"
                   className="text-slate-700 hover:text-slate-900 font-medium transition-colors"
                 >
