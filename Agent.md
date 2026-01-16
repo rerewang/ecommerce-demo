@@ -3,6 +3,20 @@
 ## Agent
 - Agent应该与用户通过中文沟通
 
+## 入口文件（工作锚点）
+
+沟通时使用入口文件作为起点，需要细节时再加载对应文件：
+
+| 入口文件 | 用途 |
+|---------|------|
+| `Health.md` | 作息、运动、饮食 |
+| `Career.md` | 接活、求职、技术方向 |
+| `Tools.md` | 工具链：信息获取、开发工具、写作流程 |
+| `Mind.md` | 心理、情绪、习惯 |
+| `Finance.md` | 预算、收入、存款 |
+
+**工作流程：** 先说「看 Health.md」确定状态，再展开细节。
+
 > **CRITICAL**: This project follows strict Test-Driven Development (TDD).
 > **RULE**: You must NOT write implementation code without first writing a failing test.
 
