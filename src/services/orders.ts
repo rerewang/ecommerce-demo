@@ -1,5 +1,46 @@
 import { supabase } from '@/lib/supabase'
-import type { CreateOrderInput, Order, DatabaseOrder } from '@/types/order'
+import type { CreateOrderInput, Order, DatabaseOrder, OrderItem } from '@/types/order'
+
+interface OrderItemWithProduct extends OrderItem {
+  product: {
+    id: string
+    name: string
+    price: number
+    image_url: string
+    stock: number
+    category: string
+    created_at?: string
+    description?: string
+  } | null
+}
+
+// Helper to map database structure to frontend structure
+function mapToFrontendOrder(order: DatabaseOrder, items: OrderItemWithProduct[]): Order {
+  return {
+    id: order.id,
+    userId: order.user_id,
+    status: order.status,
+    total: order.total,
+    shippingAddress: order.shipping_address,
+    createdAt: order.created_at,
+    updatedAt: order.updated_at,
+    items: items.map(item => ({
+      product: {
+        id: item.product?.id || item.product_id,
+        name: item.product?.name || 'Unknown Product',
+        description: item.product?.description || '', // Default empty string if undefined
+        price: item.price_at_purchase,
+        image_url: item.product?.image_url || '',
+        stock: item.product?.stock || 0,
+        category: item.product?.category || 'Unknown',
+        created_at: item.product?.created_at || new Date().toISOString()
+      },
+      quantity: item.quantity,
+      orderId: item.order_id,
+      purchasedAt: item.created_at
+    }))
+  }
+}
 
 export async function createOrder(input: CreateOrderInput, userId: string): Promise<Order> {
   // 1. Create order record
@@ -48,7 +89,7 @@ export async function createOrder(input: CreateOrderInput, userId: string): Prom
     }
   }
 
-  return mapToFrontendOrder(orderData, itemsData as any[])
+  return mapToFrontendOrder(orderData, itemsData as unknown as OrderItemWithProduct[])
 }
 
 export async function getUserOrders(): Promise<Order[]> {
@@ -66,7 +107,7 @@ export async function getUserOrders(): Promise<Order[]> {
   if (error) throw error
   if (!orders) return []
 
-  return orders.map(order => mapToFrontendOrder(order, order.items))
+  return orders.map(order => mapToFrontendOrder(order, order.items as unknown as OrderItemWithProduct[]))
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
@@ -84,31 +125,5 @@ export async function getOrderById(orderId: string): Promise<Order | null> {
 
   if (error) return null
   
-  return mapToFrontendOrder(order, order.items)
-}
-
-// Helper to map database structure to frontend structure
-function mapToFrontendOrder(order: DatabaseOrder, items: any[]): Order {
-  return {
-    id: order.id,
-    userId: order.user_id,
-    status: order.status,
-    total: order.total,
-    shippingAddress: order.shipping_address,
-    createdAt: order.created_at,
-    updatedAt: order.updated_at,
-    items: items.map(item => ({
-      product: item.product || {
-        id: item.product_id,
-        name: 'Unknown Product',
-        price: item.price_at_purchase,
-        image_url: '',
-        stock: 0,
-        category: 'Unknown'
-      },
-      quantity: item.quantity,
-      orderId: item.order_id,
-      purchasedAt: item.created_at
-    }))
-  }
+  return mapToFrontendOrder(order, order.items as unknown as OrderItemWithProduct[])
 }
