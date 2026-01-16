@@ -25,6 +25,7 @@ function mapToFrontendOrder(order: DatabaseOrder, items: OrderItemWithProduct[])
     createdAt: order.created_at,
     updatedAt: order.updated_at,
     items: items.map(item => ({
+      id: item.id, // The ID of the order item
       product: {
         id: item.product?.id || item.product_id,
         name: item.product?.name || 'Unknown Product',
