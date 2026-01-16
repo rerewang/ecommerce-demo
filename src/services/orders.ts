@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase'
-import type { CreateOrderInput, Order, DatabaseOrder, OrderItem } from '@/types/order'
+import type { CreateOrderInput, Order, DatabaseOrder, OrderItem, OrderStatus } from '@/types/order'
 
 interface OrderItemWithProduct extends OrderItem {
   product: {
@@ -12,6 +12,15 @@ interface OrderItemWithProduct extends OrderItem {
     created_at?: string
     description?: string
   } | null
+}
+
+export async function updateOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
+  const { error } = await supabase
+    .from('orders')
+    .update({ status })
+    .eq('id', orderId)
+
+  if (error) throw new Error(`Failed to update order status: ${error.message}`)
 }
 
 // Helper to map database structure to frontend structure

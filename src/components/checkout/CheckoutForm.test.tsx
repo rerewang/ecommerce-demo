@@ -71,7 +71,7 @@ describe('CheckoutForm', () => {
       expect(screen.queryByText(/正在验证登录状态/i)).not.toBeInTheDocument()
     })
     
-    const submitBtn = screen.getByRole('button', { name: /支付/i })
+    const submitBtn = screen.getByRole('button', { name: /支付 ¥/i })
     fireEvent.click(submitBtn)
     
     expect(screen.getByLabelText(/姓名/i)).toBeRequired()
