@@ -31,7 +31,7 @@ export function CheckoutForm() {
           city: formData.get('city') as string,
           zip: formData.get('zip') as string,
         }
-      })
+      }, 'temp-user-id') // TODO: Replace with real user ID in Issue #4
       
       clearCart()
       alert('订单创建成功！')
