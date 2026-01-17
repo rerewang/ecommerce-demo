@@ -1,4 +1,5 @@
 import { supabase, createClientComponentClient } from '@/lib/supabase'
+import { SupabaseClient } from '@supabase/supabase-js'
 import type { CreateOrderInput, Order, DatabaseOrder, OrderItem, OrderStatus } from '@/types/order'
 
 interface OrderItemWithProduct extends OrderItem {
@@ -131,18 +132,17 @@ export async function getUserOrders(): Promise<Order[]> {
   return getOrders()
 }
 
-export async function getOrderById(orderId: string): Promise<Order | null> {
-  // Use browser client with session context for RLS policies
-  const browserClient = createClientComponentClient()
-  const { data: order, error } = await browserClient
+export async function getOrderById(orderId: string, supabaseClient?: SupabaseClient): Promise<Order | null> {
+  // Use provided client or fallback to browser client with session context
+  const client = supabaseClient || createClientComponentClient()
+  
+  const { data: order, error } = await client
     .from('orders')
     .select(`
       *,
       items:order_items (
         *,
-        product:products (*
-
-)
+        product:products (*)
       )
     `)
     .eq('id', orderId)

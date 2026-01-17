@@ -99,6 +99,7 @@ export function CheckoutForm({ userId }: CheckoutFormProps) {
       await updateOrderStatus(orderData.id, 'paid')
       
       clearCart()
+      router.refresh() // Ensure server components have latest data/session
       router.push(`/orders/${orderData.id}`)
     } catch (error) {
       console.error('Checkout error:', error)

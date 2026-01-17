@@ -14,14 +14,17 @@ import { Button } from '@/components/ui/Button'
 
 interface OrderDetailProps {
   orderId: string
+  initialOrder?: Order | null
 }
 
-export function OrderDetail({ orderId }: OrderDetailProps) {
+export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
   const router = useRouter()
-  const [order, setOrder] = useState<Order | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [order, setOrder] = useState<Order | null>(initialOrder || null)
+  const [loading, setLoading] = useState(!initialOrder)
 
   useEffect(() => {
+    if (initialOrder) return
+
     const fetchOrder = async () => {
       try {
         const supabase = createClientComponentClient()
