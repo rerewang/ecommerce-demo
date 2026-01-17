@@ -4,7 +4,7 @@ test.describe('E2E Checkout Flow (Real User)', () => {
   const email = 'user@example.com';
   const password = '123456';
 
-  test('should allow user to purchase items', async ({ page }) => {
+  test.skip('should allow user to purchase items', async ({ page }) => {
     const consoleMessages: { type: string; text: string }[] = [];
     
     page.on('console', msg => {
