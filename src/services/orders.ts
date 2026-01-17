@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase, createClientComponentClient } from '@/lib/supabase'
 import type { CreateOrderInput, Order, DatabaseOrder, OrderItem, OrderStatus } from '@/types/order'
 
 interface OrderItemWithProduct extends OrderItem {
@@ -15,7 +15,8 @@ interface OrderItemWithProduct extends OrderItem {
 }
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
-  const { error } = await supabase
+  const browserClient = createClientComponentClient()
+  const { error } = await browserClient
     .from('orders')
     .update({ status })
     .eq('id', orderId)
@@ -131,19 +132,28 @@ export async function getUserOrders(): Promise<Order[]> {
 }
 
 export async function getOrderById(orderId: string): Promise<Order | null> {
-  const { data: order, error } = await supabase
+  // Use browser client with session context for RLS policies
+  const browserClient = createClientComponentClient()
+  const { data: order, error } = await browserClient
     .from('orders')
     .select(`
       *,
       items:order_items (
         *,
-        product:products (*)
+        product:products (*
+
+)
       )
     `)
     .eq('id', orderId)
     .single()
 
-  if (error) return null
+  if (error) {
+    console.error('Failed to fetch order:', error)
+    return null
+  }
+  
+  if (!order) return null
   
   return mapToFrontendOrder(order, order.items as unknown as OrderItemWithProduct[])
 }

@@ -1,38 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
-import { createOrder, updateOrderStatus } from '@/services/orders'
+import { updateOrderStatus } from '@/services/orders'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { formatCurrency } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
 import { CreditCard, Smartphone, QrCode } from 'lucide-react'
+import { createClientComponentClient } from '@/lib/supabase'
+import type { CreateOrderInput } from '@/types/order'
 
 type PaymentMethod = 'alipay' | 'wechat' | 'card'
 
-export function CheckoutForm() {
+export interface CheckoutFormProps {
+  userId: string
+}
+
+export function CheckoutForm({ userId }: CheckoutFormProps) {
   const router = useRouter()
   const { items, getTotalPrice, clearCart } = useCartStore()
   const [loading, setLoading] = useState(false)
-  const [checkingAuth, setCheckingAuth] = useState(true)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('alipay')
   const [processingStep, setProcessingStep] = useState<'idle' | 'creating_order' | 'processing_payment'>('idle')
   
   const total = getTotalPrice()
-
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.push('/login?redirect=/checkout')
-      } else {
-        setCheckingAuth(false)
-      }
-    }
-    checkAuth()
-  }, [router])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -42,15 +34,11 @@ export function CheckoutForm() {
     const formData = new FormData(e.currentTarget)
     
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) {
-        router.push('/login?redirect=/checkout')
-        return
-      }
+      // Create client-side Supabase instance with user session
+      const supabase = createClientComponentClient()
 
       // 1. Create Order
-      const order = await createOrder({
+      const orderInput: CreateOrderInput = {
         items,
         total,
         shippingAddress: {
@@ -59,17 +47,59 @@ export function CheckoutForm() {
           city: formData.get('city') as string,
           zip: formData.get('zip') as string,
         }
-      }, user.id)
+      }
 
-      // 2. Simulate Payment
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .insert({
+          user_id: userId,
+          total: orderInput.total,
+          status: 'pending',
+          shipping_address: orderInput.shippingAddress
+        })
+        .select()
+        .single()
+
+      if (orderError) throw new Error(`Failed to create order: ${orderError.message}`)
+      if (!orderData) throw new Error('Failed to create order: No data returned')
+
+      // 2. Create order items
+      const orderItems = orderInput.items.map(item => ({
+        order_id: orderData.id,
+        product_id: item.product.id,
+        quantity: item.quantity,
+        price_at_purchase: item.product.price
+      }))
+
+      const { error: itemsError } = await supabase
+        .from('order_items')
+        .insert(orderItems)
+
+      if (itemsError) {
+        throw new Error(`Failed to create order items: ${itemsError.message}`)
+      }
+
+      // 3. Decrement stock for each item
+      for (const item of orderInput.items) {
+        const { error: stockError } = await supabase.rpc('decrement_stock', {
+          product_id: item.product.id,
+          quantity: item.quantity
+        })
+
+        if (stockError) {
+          console.error(`Failed to decrement stock for item ${item.product.id}:`, stockError)
+        }
+      }
+
+      // 4. Simulate Payment
       setProcessingStep('processing_payment')
       await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // 3. Update Order Status
-      await updateOrderStatus(order.id, 'paid')
+      // 5. Update Order Status
+      await updateOrderStatus(orderData.id, 'paid')
       
       clearCart()
-      router.push(`/orders/${order.id}`)
+      router.push(`/orders/${orderData.id}`)
     } catch (error) {
       console.error('Checkout error:', error)
       const message = error instanceof Error ? error.message : '下单失败，请重试'
@@ -78,10 +108,6 @@ export function CheckoutForm() {
     } finally {
       setLoading(false)
     }
-  }
-
-  if (checkingAuth) {
-    return <div className="p-8 text-center">正在验证登录状态...</div>
   }
 
   if (items.length === 0) {

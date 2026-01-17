@@ -45,6 +45,11 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
+  // Protect /checkout route (Authentication Check)
+  if (request.nextUrl.pathname.startsWith('/checkout') && !user) {
+    return NextResponse.redirect(new URL('/login?redirect=/checkout', request.url))
+  }
+
   // 2. Protect /admin routes (Role Check - Authorization)
   if (request.nextUrl.pathname.startsWith('/admin') && user) {
     // Check profile role

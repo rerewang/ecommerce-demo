@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Package, MapPin, Calendar, CreditCard } from 'lucide-react'
 import { getOrderById } from '@/services/orders'
-import { supabase } from '@/lib/supabase'
+import { createClientComponentClient } from '@/lib/supabase'
 import { Order } from '@/types/order'
 import { formatCurrency } from '@/lib/utils'
 import { OrderStatusBadge } from './OrderStatusBadge'
@@ -24,6 +24,7 @@ export function OrderDetail({ orderId }: OrderDetailProps) {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
+        const supabase = createClientComponentClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) {
           router.push(`/login?redirect=/orders/${orderId}`)

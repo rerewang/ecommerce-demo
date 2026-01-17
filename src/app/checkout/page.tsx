@@ -1,7 +1,35 @@
 import { CheckoutForm } from '@/components/checkout/CheckoutForm'
 import { Header } from '@/components/layout/Header'
+import { cookies } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
+import { redirect } from 'next/navigation'
 
-export default function CheckoutPage() {
+export default async function CheckoutPage() {
+  const cookieStore = await cookies()
+  
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+  
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login?redirect=/checkout')
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
@@ -12,7 +40,7 @@ export default function CheckoutPage() {
         </h1>
         
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 max-w-2xl mx-auto">
-          <CheckoutForm />
+          <CheckoutForm userId={user.id} />
         </div>
       </main>
     </div>

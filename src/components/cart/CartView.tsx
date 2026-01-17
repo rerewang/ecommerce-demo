@@ -3,18 +3,18 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { Minus, Plus, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/Button'
+import { Button } from '../ui/Button'
 import { useCartStore } from '@/store/cart'
 import { formatCurrency } from '@/lib/utils'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export function CartView() {
   const [mounted, setMounted] = useState(false)
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore()
 
-  if (typeof window !== 'undefined' && !mounted) {
+  useEffect(() => {
     setMounted(true)
-  }
+  }, [])
 
   if (!mounted) {
     return (
