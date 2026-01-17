@@ -13,6 +13,7 @@ export function CartView() {
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore()
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

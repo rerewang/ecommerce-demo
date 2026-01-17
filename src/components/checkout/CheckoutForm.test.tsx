@@ -9,6 +9,17 @@ vi.mock('@/store/cart', () => ({
 }))
 
 vi.mock('@/lib/supabase', () => ({
+  createClientComponentClient: vi.fn(() => ({
+    from: vi.fn(() => ({
+      insert: vi.fn(() => ({
+        select: vi.fn(() => ({
+          single: vi.fn().mockResolvedValue({ data: { id: 'order-123' }, error: null })
+        }))
+      })),
+      update: vi.fn().mockResolvedValue({ error: null })
+    })),
+    rpc: vi.fn().mockResolvedValue({ error: null })
+  })),
   supabase: {
     auth: {
       getUser: vi.fn()
@@ -46,12 +57,10 @@ describe('CheckoutForm', () => {
       clearCart: vi.fn()
     } as ReturnType<typeof useCartStore>)
 
-    render(<CheckoutForm />)
+    render(<CheckoutForm userId="test-user-id" />)
     
-    // Wait for auth check to complete
-    await waitFor(() => {
-      expect(screen.queryByText(/正在验证登录状态/i)).not.toBeInTheDocument()
-    })
+    // Auth check is no longer done in client, so we don't need to wait for it
+    expect(screen.queryByText(/正在验证登录状态/i)).not.toBeInTheDocument()
 
     expect(screen.getByLabelText(/姓名/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/地址/i)).toBeInTheDocument()
@@ -65,11 +74,9 @@ describe('CheckoutForm', () => {
       clearCart: vi.fn()
     } as ReturnType<typeof useCartStore>)
 
-    render(<CheckoutForm />)
+    render(<CheckoutForm userId="test-user-id" />)
     
-    await waitFor(() => {
-      expect(screen.queryByText(/正在验证登录状态/i)).not.toBeInTheDocument()
-    })
+    expect(screen.queryByText(/正在验证登录状态/i)).not.toBeInTheDocument()
     
     const submitBtn = screen.getByRole('button', { name: /支付 ¥/i })
     fireEvent.click(submitBtn)
