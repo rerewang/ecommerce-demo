@@ -1,5 +1,5 @@
 import { describe, test, expect, vi } from 'vitest'
-import { createServerClient } from './supabase'
+import { createServerClient } from './supabase-server'
 
 vi.mock('next/headers', () => ({
   cookies: vi.fn(async () => ({

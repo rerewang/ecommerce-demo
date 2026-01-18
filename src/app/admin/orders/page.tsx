@@ -1,7 +1,7 @@
 import { Header } from '@/components/layout/Header'
 import { OrdersTable } from '@/components/admin/OrdersTable'
 import { getOrders } from '@/services/orders'
-import { createServerClient } from '@/lib/supabase'
+import { createServerClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { OrderStatus } from '@/types/order'

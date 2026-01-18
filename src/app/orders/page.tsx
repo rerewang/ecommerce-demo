@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase'
+import { createServerClient } from '@/lib/supabase-server'
 import { getUserOrders } from '@/services/orders'
 import { redirect } from 'next/navigation'
 import { OrderCard } from '@/components/orders/OrderCard'
