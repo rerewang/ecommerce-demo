@@ -55,7 +55,7 @@ export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
     }
 
     fetchOrder()
-  }, [orderId, router])
+  }, [orderId, router, initialOrder])
 
   if (loading) {
     return <div className="animate-pulse h-96 bg-slate-100 rounded-xl" />
