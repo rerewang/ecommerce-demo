@@ -23,7 +23,7 @@ export default async function OrdersPage() {
     redirect('/login?redirect=/orders')
   }
 
-  const orders = await getUserOrders(user.id, profile.role)
+  const orders = await getUserOrders(user.id, profile.role, supabase)
 
   return (
     <div className="container mx-auto px-4 py-8">

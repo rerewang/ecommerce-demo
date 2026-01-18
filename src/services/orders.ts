@@ -114,13 +114,14 @@ export async function createOrder(input: CreateOrderInput, userId: string): Prom
 export async function getOrders(
   userId: string,
   role: string,
-  status?: OrderStatus
+  status?: OrderStatus,
+  client: SupabaseClient = supabase
 ): Promise<Order[]> {
   if (role !== 'admin') {
     throw new Error('Unauthorized: Admin access required')
   }
 
-  let query = supabase
+  let query = client
     .from('orders')
     .select(`
       *,
@@ -145,7 +146,8 @@ export async function getOrders(
 
 export async function getUserOrders(
   userId: string,
-  role: string
+  role: string,
+  client: SupabaseClient = supabase
 ): Promise<Order[]> {
   if (!userId) {
     throw new Error('Authentication required')
@@ -156,7 +158,7 @@ export async function getUserOrders(
     throw new Error('Invalid role')
   }
   
-  let query = supabase
+  let query = client
     .from('orders')
     .select(`
       *,

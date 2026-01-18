@@ -17,6 +17,8 @@ test.describe('User Orders Permission', () => {
     await page.goto('/orders')
     await expect(page).toHaveURL('/orders')
     await expect(page.getByRole('heading', { name: '我的订单' })).toBeVisible()
+    
+    await expect(page.locator('a[href^="/orders/"]')).not.toHaveCount(0)
   })
 })
 
@@ -32,6 +34,8 @@ test.describe('Admin Orders Permission', () => {
     await page.goto('/admin/orders')
     await expect(page).toHaveURL('/admin/orders')
     await expect(page.getByRole('heading', { name: '订单管理' })).toBeVisible()
+    
+    await expect(page.locator('tbody tr')).not.toHaveCount(0)
   })
   
   test('regular user cannot access admin orders', async ({ page }) => {

@@ -34,7 +34,7 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
     ? (status as OrderStatus) 
     : undefined
     
-  const orders = await getOrders(user.id, profile.role, validStatus)
+  const orders = await getOrders(user.id, profile.role, validStatus, supabase)
 
   const tabs = [
     { label: '全部', value: undefined },
