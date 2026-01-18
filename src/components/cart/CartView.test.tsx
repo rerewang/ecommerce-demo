@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { CartView } from './CartView'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { CartItem } from '@/store/cart'
@@ -59,5 +59,73 @@ describe('CartView', () => {
     expect(screen.getByText('¥100.00')).toBeInTheDocument()
     expect(screen.getByText(/总计/)).toBeInTheDocument()
     expect(screen.getByText(/¥200.00/)).toBeInTheDocument()
+  })
+
+  it('calls removeItem when trash button clicked', () => {
+    mockStore.items = mockItems
+    mockStore.getTotalPrice.mockReturnValue(200)
+
+    render(<CartView />)
+    
+    const removeButton = screen.getByLabelText(/移除商品/i)
+    fireEvent.click(removeButton)
+
+    expect(mockStore.removeItem).toHaveBeenCalledWith('1')
+    expect(mockStore.removeItem).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls updateQuantity when minus button clicked', () => {
+    mockStore.items = mockItems
+    mockStore.getTotalPrice.mockReturnValue(200)
+
+    render(<CartView />)
+    
+    const minusButton = screen.getByLabelText(/减少数量/i)
+    fireEvent.click(minusButton)
+
+    expect(mockStore.updateQuantity).toHaveBeenCalledWith('1', 1)
+    expect(mockStore.updateQuantity).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls updateQuantity when plus button clicked', () => {
+    mockStore.items = mockItems
+    mockStore.getTotalPrice.mockReturnValue(200)
+
+    render(<CartView />)
+    
+    const plusButton = screen.getByLabelText(/增加数量/i)
+    fireEvent.click(plusButton)
+
+    expect(mockStore.updateQuantity).toHaveBeenCalledWith('1', 3)
+    expect(mockStore.updateQuantity).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows checkout button with correct link when items exist', () => {
+    mockStore.items = mockItems
+    mockStore.getTotalPrice.mockReturnValue(200)
+
+    render(<CartView />)
+    
+    const checkoutButton = screen.getByText(/前往结算/i)
+    expect(checkoutButton).toBeInTheDocument()
+    
+    const checkoutLink = checkoutButton.closest('a')
+    expect(checkoutLink).toHaveAttribute('href', '/checkout')
+  })
+
+  it('does not decrease quantity below 1', () => {
+    const singleItemCart: CartItem[] = [{
+      ...mockItems[0],
+      quantity: 1
+    }]
+    mockStore.items = singleItemCart
+    mockStore.getTotalPrice.mockReturnValue(100)
+
+    render(<CartView />)
+    
+    const minusButton = screen.getByLabelText(/减少数量/i)
+    fireEvent.click(minusButton)
+
+    expect(mockStore.updateQuantity).toHaveBeenCalledWith('1', 1)
   })
 })

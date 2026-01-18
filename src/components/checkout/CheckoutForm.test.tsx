@@ -3,33 +3,45 @@ import { CheckoutForm } from './CheckoutForm'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useCartStore } from '@/store/cart'
 import { supabase } from '@/lib/supabase'
+import * as ordersService from '@/services/orders'
 
 vi.mock('@/store/cart', () => ({
   useCartStore: vi.fn()
 }))
 
-vi.mock('@/lib/supabase', () => ({
-  createClientComponentClient: vi.fn(() => ({
-    from: vi.fn(() => ({
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn().mockResolvedValue({ data: { id: 'order-123' }, error: null })
+vi.mock('@/services/orders', () => ({
+  updateOrderStatus: vi.fn().mockResolvedValue(undefined)
+}))
+
+vi.mock('@/lib/supabase', async () => {
+  const actual = await vi.importActual('@/lib/supabase')
+  return {
+    ...actual,
+    createClientComponentClient: vi.fn(() => ({
+      from: vi.fn(() => ({
+        insert: vi.fn(() => ({
+          select: vi.fn(() => ({
+            single: vi.fn().mockResolvedValue({ data: { id: 'order-123' }, error: null })
+          }))
         }))
       })),
-      update: vi.fn().mockResolvedValue({ error: null })
+      rpc: vi.fn().mockResolvedValue({ error: null })
     })),
-    rpc: vi.fn().mockResolvedValue({ error: null })
-  })),
-  supabase: {
-    auth: {
-      getUser: vi.fn()
+    supabase: {
+      auth: {
+        getUser: vi.fn()
+      }
     }
   }
-}))
+})
+
+const mockRouterPush = vi.fn()
+const mockRouterRefresh = vi.fn()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
-    push: vi.fn()
+    push: mockRouterPush,
+    refresh: mockRouterRefresh
   })
 }))
 
@@ -48,6 +60,13 @@ describe('CheckoutForm', () => {
       error: null
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any)
+    
+    // Clear router mocks
+    mockRouterPush.mockClear()
+    mockRouterRefresh.mockClear()
+    
+    // Clear service mocks
+    vi.mocked(ordersService.updateOrderStatus).mockClear()
   })
 
   it('renders form fields', async () => {
@@ -82,5 +101,111 @@ describe('CheckoutForm', () => {
     fireEvent.click(submitBtn)
     
     expect(screen.getByLabelText(/姓名/i)).toBeRequired()
+  })
+
+  it('submits order successfully, clears cart, and redirects', async () => {
+    const mockClearCart = vi.fn()
+
+    vi.mocked(useCartStore).mockReturnValue({
+      items: mockCartItems,
+      getTotalPrice: () => 100,
+      clearCart: mockClearCart
+    } as ReturnType<typeof useCartStore>)
+
+    render(<CheckoutForm userId="test-user-id" />)
+
+    // Fill form
+    fireEvent.change(screen.getByLabelText(/姓名/i), { target: { value: 'John Doe' } })
+    fireEvent.change(screen.getByLabelText(/地址/i), { target: { value: '123 Main St' } })
+    fireEvent.change(screen.getByLabelText(/城市/i), { target: { value: 'Beijing' } })
+    fireEvent.change(screen.getByLabelText(/邮编/i), { target: { value: '100000' } })
+
+    // Submit
+    const submitBtn = screen.getByRole('button', { name: /支付 ¥/i })
+    fireEvent.click(submitBtn)
+
+    // Verify loading state
+    await waitFor(() => {
+      expect(screen.getByText(/创建订单中/i)).toBeInTheDocument()
+    })
+
+    // Wait for processing
+    await waitFor(() => {
+      expect(screen.getByText(/正在支付/i)).toBeInTheDocument()
+    }, { timeout: 3000 })
+
+    // Wait for completion
+    await waitFor(() => {
+      expect(mockClearCart).toHaveBeenCalled()
+    }, { timeout: 3000 })
+
+    await waitFor(() => {
+      expect(mockRouterRefresh).toHaveBeenCalled()
+      expect(mockRouterPush).toHaveBeenCalledWith('/orders/order-123')
+    })
+  })
+
+  it('handles submission errors gracefully', async () => {
+    const mockClearCart = vi.fn()
+    const mockAlert = vi.spyOn(window, 'alert').mockImplementation(() => {})
+
+    vi.mocked(useCartStore).mockReturnValue({
+      items: mockCartItems,
+      getTotalPrice: () => 100,
+      clearCart: mockClearCart
+    } as ReturnType<typeof useCartStore>)
+
+    const { createClientComponentClient } = await import('@/lib/supabase')
+    const mockInsert = vi.fn(() => ({
+      select: vi.fn(() => ({
+        single: vi.fn().mockResolvedValue({ 
+          data: null, 
+          error: { message: 'Database error' } 
+        })
+      }))
+    }))
+
+    vi.mocked(createClientComponentClient).mockReturnValue({
+      from: vi.fn(() => ({
+        insert: mockInsert
+      })),
+      rpc: vi.fn()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any)
+
+    render(<CheckoutForm userId="test-user-id" />)
+
+    // Fill form
+    fireEvent.change(screen.getByLabelText(/姓名/i), { target: { value: 'John Doe' } })
+    fireEvent.change(screen.getByLabelText(/地址/i), { target: { value: '123 Main St' } })
+    fireEvent.change(screen.getByLabelText(/城市/i), { target: { value: 'Beijing' } })
+    fireEvent.change(screen.getByLabelText(/邮编/i), { target: { value: '100000' } })
+
+    // Submit
+    const submitBtn = screen.getByRole('button', { name: /支付 ¥/i })
+    fireEvent.click(submitBtn)
+
+    // Wait for error
+    await waitFor(() => {
+      expect(mockAlert).toHaveBeenCalledWith(expect.stringContaining('Failed to create order'))
+    })
+
+    // Verify cart was NOT cleared
+    expect(mockClearCart).not.toHaveBeenCalled()
+
+    mockAlert.mockRestore()
+  })
+
+  it('shows empty state when cart is empty', () => {
+    vi.mocked(useCartStore).mockReturnValue({
+      items: [],
+      getTotalPrice: () => 0,
+      clearCart: vi.fn()
+    } as ReturnType<typeof useCartStore>)
+
+    render(<CheckoutForm userId="test-user-id" />)
+
+    expect(screen.getByText(/购物车为空/i)).toBeInTheDocument()
+    expect(screen.queryByLabelText(/姓名/i)).not.toBeInTheDocument()
   })
 })

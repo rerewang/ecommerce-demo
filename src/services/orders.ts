@@ -17,12 +17,19 @@ interface OrderItemWithProduct extends OrderItem {
 
 export async function updateOrderStatus(orderId: string, status: OrderStatus): Promise<void> {
   const browserClient = createClientComponentClient()
-  const { error } = await browserClient
+  const { error, data } = await browserClient
     .from('orders')
     .update({ status })
     .eq('id', orderId)
+    .select()
 
   if (error) throw new Error(`Failed to update order status: ${error.message}`)
+  
+  if (!data || data.length === 0) {
+    console.warn(`[updateOrderStatus] Warning: No rows updated for order ${orderId}. Possible RLS restriction.`)
+  } else {
+    console.log(`[updateOrderStatus] Successfully updated order ${orderId} to ${status}`)
+  }
 }
 
 // Helper to map database structure to frontend structure

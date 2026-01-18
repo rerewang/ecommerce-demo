@@ -20,15 +20,78 @@
 > **CRITICAL**: This project follows strict Test-Driven Development (TDD).
 > **RULE**: You must NOT write implementation code without first writing a failing test.
 
-## 1. Core Philosophy: TDD & E2E
-Every feature or bugfix must follow this cycle:
-1.  **Unit/Integration (Vitest)**: Write failing test -> Implement -> Pass.
-2.  **Build Verification**: Run `npm run build` to catch Server/Client boundary errors (Lint/Unit tests often miss these).
-3.  **E2E (Playwright)**: For critical flows (Checkout, Login, Admin), write a Playwright test.
-4.  **Self-Correction**: Use the MCP Playwright tool to run these tests.
+## 1. Core Philosophy: TDD + Systematic Debugging + Verification
 
-**If you are asked to "fix a bug":**
-- Reproduce it with a test case first.
+### Strict TDD (Test-Driven Development)
+**Iron Law:** NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
+
+**RED-GREEN-REFACTOR Cycle:**
+1. **RED** - Write failing test
+   - Write one minimal test showing expected behavior
+   - Run test to verify it fails with expected error message
+   - If test passes immediately → test is wrong, rewrite test
+   
+2. **GREEN** - Minimal implementation
+   - Write simplest code to make test pass
+   - No extra features, no "improvements"
+   - Run test to verify it passes
+   
+3. **REFACTOR** - Clean up
+   - Remove duplication, improve names
+   - Keep tests green
+   - Don't add new behavior
+
+**Bugfix Rule:** 
+- Write a test that reproduces the bug (watch it fail)
+- Fix the bug (watch test pass)
+- Never fix bugs without a test
+
+### Systematic Debugging Checklist
+When encountering any bug or test failure, BEFORE attempting fixes:
+
+- [ ] **Read error messages completely** (don't skip stack traces)
+- [ ] **Reproduce consistently** (100% reproducible before continuing)
+- [ ] **Check recent changes** (`git diff`, `git log`)
+- [ ] **Multi-component systems**: Add diagnostic logging at EACH component boundary
+- [ ] **Trace data flow**: Where does bad value originate? Trace backward to source
+- [ ] **Form single hypothesis**: "I think X is root cause because Y"
+- [ ] **Test minimally**: Change ONE variable at a time
+- [ ] **Verify before continuing**: Did it work? If not, form NEW hypothesis
+
+**3-Strike Rule:** If 3 fix attempts fail → STOP and question the architecture (not just the symptom)
+
+### Verification Before Completion
+**Iron Law:** NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
+
+Before claiming "done", "fixed", "passing", or creating commits/PRs:
+
+```bash
+# 1. Lint check
+npm run lint
+# Expected: ✓ No ESLint warnings or errors
+
+# 2. Type check
+npx tsc --noEmit
+# Expected: No errors
+
+# 3. Unit tests
+npm run test
+# Expected: All tests pass (N/N)
+
+# 4. E2E tests (MCP Playwright)
+npx playwright test
+# Expected: N passed (Xs)
+
+# 5. Build verification
+npm run build
+# Expected: ✓ Compiled successfully
+```
+
+**Red Flags (STOP before claiming completion):**
+- Using "should", "probably", "seems to"
+- Expressing satisfaction before verification ("Great!", "Done!")
+- Trusting partial verification (Lint passed ≠ Build will pass)
+- Relying on previous test runs (must be FRESH)
 
 ## 2. Tech Stack & Standards
 - **Framework**: Next.js 15 (App Router)
