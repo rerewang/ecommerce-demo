@@ -1,21 +1,40 @@
 import { Header } from '@/components/layout/Header'
 import { OrdersTable } from '@/components/admin/OrdersTable'
 import { getOrders } from '@/services/orders'
+import { createServerClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { OrderStatus } from '@/types/order'
+import { redirect } from 'next/navigation'
 
 interface AdminOrdersPageProps {
   searchParams: Promise<{ status?: string }>
 }
 
 export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageProps) {
+  const supabase = await createServerClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user) {
+    redirect('/login?redirect=/admin/orders')
+  }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || profile.role !== 'admin') {
+    redirect('/')
+  }
+
   const { status } = await searchParams
   const validStatus = ['pending', 'paid', 'shipped', 'cancelled'].includes(status || '') 
     ? (status as OrderStatus) 
     : undefined
     
-  const orders = await getOrders(validStatus)
+  const orders = await getOrders(user.id, profile.role, validStatus)
 
   const tabs = [
     { label: '全部', value: undefined },

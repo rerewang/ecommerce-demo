@@ -6,13 +6,10 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Browser client singleton
 let browserClient: ReturnType<typeof createBrowserClient> | null = null
 
-// Browser client for client components that need auth context
 export function createClientComponentClient() {
   if (typeof window === 'undefined') {
-    // Return a new client for server-side rendering (though this function is typically used in client components)
     return createBrowserClient(supabaseUrl, supabaseAnonKey)
   }
 
