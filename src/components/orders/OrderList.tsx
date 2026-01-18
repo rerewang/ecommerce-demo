@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getUserOrders } from '@/services/orders'
-import { supabase } from '@/lib/supabase'
+import { createClientComponentClient } from '@/lib/supabase'
 import { Order } from '@/types/order'
 import { OrderCard } from './OrderCard'
 import { Button } from '@/components/ui/Button'
@@ -12,6 +12,7 @@ export function OrderList() {
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -32,7 +33,7 @@ export function OrderList() {
           throw new Error('Profile not found')
         }
 
-        const data = await getUserOrders(user.id, profile.role)
+        const data = await getUserOrders(user.id, profile.role, supabase)
         setOrders(data)
       } catch (error) {
         console.error('Failed to fetch orders:', error)
@@ -42,7 +43,7 @@ export function OrderList() {
     }
 
     fetchOrders()
-  }, [router])
+  }, [router, supabase])
 
   if (loading) {
     return (

@@ -56,6 +56,20 @@ describe('getUserOrders', () => {
     expect(orders).toBeDefined()
     expect(Array.isArray(orders)).toBe(true)
   })
+
+  test('uses provided client if passed', async () => {
+    const customMockClient = {
+      from: vi.fn(() => ({
+        select: vi.fn(() => createQueryChain())
+      })),
+      auth: {
+        getUser: vi.fn(() => Promise.resolve({ data: { user: { id: 'user-123' } }, error: null }))
+      }
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await getUserOrders('user-123', 'customer', customMockClient as any)
+    expect(customMockClient.from).toHaveBeenCalledWith('orders')
+  })
 })
 
 describe('getOrders', () => {

@@ -3,7 +3,9 @@ import { createServerClient } from './supabase-server'
 
 vi.mock('next/headers', () => ({
   cookies: vi.fn(async () => ({
-    get: () => ({ value: 'mock-session-token' })
+    get: () => ({ value: 'mock-session-token' }),
+    getAll: () => [{ name: 'sb-token', value: 'mock-session-token' }],
+    set: vi.fn()
   }))
 }))
 
