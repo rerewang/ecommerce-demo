@@ -111,7 +111,15 @@ export async function createOrder(input: CreateOrderInput, userId: string): Prom
   return mapToFrontendOrder(orderData, itemsData as unknown as OrderItemWithProduct[])
 }
 
-export async function getOrders(status?: OrderStatus): Promise<Order[]> {
+export async function getOrders(
+  userId: string,
+  role: string,
+  status?: OrderStatus
+): Promise<Order[]> {
+  if (role !== 'admin') {
+    throw new Error('Unauthorized: Admin access required')
+  }
+
   let query = supabase
     .from('orders')
     .select(`
@@ -135,8 +143,40 @@ export async function getOrders(status?: OrderStatus): Promise<Order[]> {
   return orders.map(order => mapToFrontendOrder(order, order.items as unknown as OrderItemWithProduct[]))
 }
 
-export async function getUserOrders(): Promise<Order[]> {
-  return getOrders()
+export async function getUserOrders(
+  userId: string,
+  role: string
+): Promise<Order[]> {
+  if (!userId) {
+    throw new Error('Authentication required')
+  }
+  
+  const validRoles = ['admin', 'customer']
+  if (!validRoles.includes(role)) {
+    throw new Error('Invalid role')
+  }
+  
+  let query = supabase
+    .from('orders')
+    .select(`
+      *,
+      items:order_items (
+        *,
+        product:products (*)
+      )
+    `)
+    .order('created_at', { ascending: false })
+  
+  if (role !== 'admin') {
+    query = query.eq('user_id', userId)
+  }
+  
+  const { data: orders, error } = await query
+  
+  if (error) throw error
+  if (!orders) return []
+  
+  return orders.map(order => mapToFrontendOrder(order, order.items as unknown as OrderItemWithProduct[]))
 }
 
 export async function getOrderById(orderId: string, supabaseClient?: SupabaseClient): Promise<Order | null> {

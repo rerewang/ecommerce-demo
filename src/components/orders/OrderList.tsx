@@ -22,7 +22,17 @@ export function OrderList() {
           return
         }
 
-        const data = await getUserOrders()
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+
+        if (!profile) {
+          throw new Error('Profile not found')
+        }
+
+        const data = await getUserOrders(user.id, profile.role)
         setOrders(data)
       } catch (error) {
         console.error('Failed to fetch orders:', error)
