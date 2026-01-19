@@ -1,15 +1,23 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { getProductById } from '@/services/products'
-import { AddToCartButton } from '@/components/products/AddToCartButton'
+import { getProductById, getProducts } from '@/services/products'
 import { formatCurrency } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Header } from '@/components/layout/Header'
 import type { Metadata } from 'next'
+import { ProductDetailClient } from './ProductDetailClient'
+import { ProductFeatures } from '@/components/products/ProductFeatures'
 
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateStaticParams() {
+  const products = await getProducts()
+  return products.map((product) => ({
+    id: product.id,
+  }))
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const product = await getProductById(id)
   
@@ -25,7 +33,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   }
 }
 
-export default async function ProductPage({ params }: { params: { id: string } }) {
+export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const product = await getProductById(id)
   
@@ -92,7 +100,9 @@ export default async function ProductPage({ params }: { params: { id: string } }
               </div>
             </div>
             
-            <AddToCartButton product={product} />
+            <ProductDetailClient product={product} />
+
+            <ProductFeatures metadata={product.metadata} />
           </div>
         </div>
       </main>

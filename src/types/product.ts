@@ -1,3 +1,13 @@
+export interface ProductVariant {
+  name: string // e.g., "Color"
+  values: string[] // e.g., ["Red", "Blue"]
+}
+
+export interface ProductMetadata {
+  features?: Record<string, string> // Key-value attributes e.g. { Material: "Cotton" }
+  variants?: ProductVariant[]
+}
+
 export interface Product {
   id: string
   name: string
@@ -7,6 +17,7 @@ export interface Product {
   stock: number
   category: string
   created_at: string
+  metadata?: ProductMetadata
 }
 
 export type CreateProductInput = Omit<Product, 'id' | 'created_at'>

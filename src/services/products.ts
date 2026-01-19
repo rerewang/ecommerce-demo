@@ -10,7 +10,14 @@ const MOCK_PRODUCTS: Product[] = [
     stock: 10, 
     category: 'Electronics',
     image_url: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569',
-    created_at: '2024-01-01T00:00:00Z'
+    created_at: '2024-01-01T00:00:00Z',
+    metadata: {
+      features: { "Chip": "A17 Pro", "Display": "6.1-inch" },
+      variants: [
+        { name: "Color", values: ["Natural Titanium", "Blue Titanium"] },
+        { name: "Storage", values: ["128GB", "256GB"] }
+      ]
+    }
   },
   { 
     id: '2', 
