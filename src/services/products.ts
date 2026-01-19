@@ -1,11 +1,16 @@
 import { supabase } from '@/lib/supabase'
-import type { Product, CreateProductInput, UpdateProductInput } from '@/types/product'
+import type { Product, CreateProductInput, UpdateProductInput, ProductFilter } from '@/types/product'
 
-export async function getProducts(): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .order('created_at', { ascending: false })
+export async function getProducts(filter?: ProductFilter): Promise<Product[]> {
+  let query = supabase.from('products').select('*')
+
+  if (filter?.category) {
+    query = query.eq('category', filter.category)
+  }
+
+  query = query.order('created_at', { ascending: false })
+  
+  const { data, error } = await query
   
   if (error) throw error
   return data || []
