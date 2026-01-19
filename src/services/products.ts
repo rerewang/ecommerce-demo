@@ -12,7 +12,18 @@ export async function getProducts(filter?: ProductFilter): Promise<Product[]> {
     query = query.ilike('name', `%${filter.query}%`)
   }
 
-  query = query.order('created_at', { ascending: false })
+  switch (filter?.sort) {
+    case 'price_asc':
+      query = query.order('price', { ascending: true })
+      break
+    case 'price_desc':
+      query = query.order('price', { ascending: false })
+      break
+    case 'newest':
+    default:
+      query = query.order('created_at', { ascending: false })
+      break
+  }
   
   const { data, error } = await query
   
