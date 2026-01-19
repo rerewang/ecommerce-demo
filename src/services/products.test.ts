@@ -37,4 +37,22 @@ describe('getProducts', () => {
     expect(result).toHaveLength(1)
     expect(result[0].category).toBe('Electronics')
   })
+
+  it('filters products by search query (case-insensitive)', async () => {
+    const mockQuery = {
+      select: vi.fn().mockReturnThis(),
+      ilike: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ 
+        data: [mockProducts[0]], 
+        error: null 
+      })
+    }
+
+    vi.mocked(supabase.from).mockReturnValue(mockQuery as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await getProducts({ query: 'iphone' })
+
+    expect(mockQuery.ilike).toHaveBeenCalledWith('name', '%iphone%')
+    expect(result).toHaveLength(1)
+  })
 })
