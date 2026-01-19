@@ -4,7 +4,7 @@ A full-stack e-commerce platform built with Next.js, TypeScript, and Supabase.
 
 ## Features
 
-- 🛍️ Product catalog with search and filtering
+- 🛍️ Product catalog with search, filtering (category), and sorting
 - 🛒 Shopping cart with real-time updates
 - 👤 User authentication (sign up, login, logout)
 - 💳 Checkout process with form validation
@@ -59,6 +59,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```bash
 # Start development server
 npm run dev
+
+# Start with Mock Data (no Supabase connection required)
+MOCK_DATA=true npm run dev
 
 # Run tests in watch mode
 npm run test -- --watch
