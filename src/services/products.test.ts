@@ -105,4 +105,23 @@ describe('getProducts', () => {
 
     expect(mockQuery.order).toHaveBeenCalledWith('created_at', { ascending: false })
   })
+
+  it('returns products with metadata', async () => {
+    const mockProductWithMetadata = {
+      ...mockProducts[0],
+      metadata: { features: { Chip: 'A17' } }
+    }
+    const mockQuery = {
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ 
+        data: [mockProductWithMetadata], 
+        error: null 
+      })
+    }
+
+    vi.mocked(supabase.from).mockReturnValue(mockQuery as unknown as ReturnType<typeof supabase.from>)
+
+    const result = await getProducts()
+    expect(result[0].metadata).toEqual({ features: { Chip: 'A17' } })
+  })
 })

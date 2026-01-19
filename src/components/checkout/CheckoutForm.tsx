@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/cart'
+import { useCheckoutStore } from '@/store/checkout'
 import { updateOrderStatus } from '@/services/orders'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
@@ -15,16 +16,29 @@ type PaymentMethod = 'alipay' | 'wechat' | 'card'
 
 export interface CheckoutFormProps {
   userId: string
+  source?: string
 }
 
-export function CheckoutForm({ userId }: CheckoutFormProps) {
+export function CheckoutForm({ userId, source }: CheckoutFormProps) {
   const router = useRouter()
-  const { items, getTotalPrice, clearCart } = useCartStore()
+  const cartStore = useCartStore()
+  const checkoutStore = useCheckoutStore()
+  
+  const isDirectBuy = source === 'direct'
+  const directItem = checkoutStore.directBuyItem
+
+  const items = isDirectBuy && directItem
+    ? [{ product: directItem.product, quantity: directItem.quantity }]
+    : cartStore.items
+    
+  const total = isDirectBuy && directItem
+    ? directItem.product.price * directItem.quantity
+    : cartStore.getTotalPrice()
+
   const [loading, setLoading] = useState(false)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('alipay')
   const [processingStep, setProcessingStep] = useState<'idle' | 'creating_order' | 'processing_payment'>('idle')
-  
-  const total = getTotalPrice()
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -98,7 +112,11 @@ export function CheckoutForm({ userId }: CheckoutFormProps) {
       // 5. Update Order Status
       await updateOrderStatus(orderData.id, 'paid')
       
-      clearCart()
+      if (isDirectBuy) {
+        checkoutStore.setDirectBuyItem(null)
+      } else {
+        cartStore.clearCart()
+      }
       router.refresh() // Ensure server components have latest data/session
       router.push(`/orders/${orderData.id}`)
     } catch (error) {

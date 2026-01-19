@@ -4,8 +4,9 @@ import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { redirect } from 'next/navigation'
 
-export default async function CheckoutPage() {
+export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ source?: string }> }) {
   const cookieStore = await cookies()
+  const { source } = await searchParams
   
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -40,7 +41,7 @@ export default async function CheckoutPage() {
         </h1>
         
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 max-w-2xl mx-auto">
-          <CheckoutForm userId={user.id} />
+          <CheckoutForm userId={user.id} source={source} />
         </div>
       </main>
     </div>
