@@ -1,0 +1,68 @@
+'use client'
+
+import { ProductMetadata } from '@/types/product'
+import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/Input'
+import { Plus, Trash2 } from 'lucide-react'
+
+interface Props {
+  value?: ProductMetadata
+  onChange: (value: ProductMetadata) => void
+}
+
+export function MetadataEditor({ value = {}, onChange }: Props) {
+  const features = value.features || {}
+
+  const updateFeature = (key: string, newVal: string, oldKey?: string) => {
+    const newFeatures = { ...features }
+    if (oldKey !== undefined && oldKey !== key) {
+      delete newFeatures[oldKey]
+    }
+    if (key) newFeatures[key] = newVal
+    onChange({ ...value, features: newFeatures })
+  }
+
+  const removeFeature = (key: string) => {
+    const newFeatures = { ...features }
+    delete newFeatures[key]
+    onChange({ ...value, features: newFeatures })
+  }
+
+  const addFeature = () => {
+    onChange({
+      ...value,
+      features: { ...features, '': '' }
+    })
+  }
+
+  return (
+    <div className="space-y-6 border p-4 rounded-lg bg-white">
+      <div>
+        <h3 className="text-lg font-medium mb-4">商品属性 (Features)</h3>
+        <div className="space-y-3">
+          {Object.entries(features).map(([key, val], index) => (
+            <div key={index} className="flex gap-2">
+              <Input 
+                placeholder="属性名 (如: Material)" 
+                value={key} 
+                onChange={(e) => updateFeature(e.target.value, val, key)}
+              />
+              <Input 
+                placeholder="属性值 (如: Cotton)" 
+                value={val} 
+                onChange={(e) => updateFeature(key, e.target.value)}
+              />
+              <Button variant="ghost" size="sm" onClick={() => removeFeature(key)}>
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
+          ))}
+          <Button type="button" onClick={addFeature} variant="outline" size="sm">
+            <Plus className="w-4 h-4 mr-2" />
+            添加属性
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
