@@ -148,10 +148,12 @@ export async function updateProduct(id: string, input: UpdateProductInput): Prom
     .update(updateData)
     .eq('id', id)
     .select()
-    .single()
   
   if (error) throw error
-  return data
+  if (!data || data.length === 0) {
+    throw new Error('Update failed: Product not found or permission denied (RLS)')
+  }
+  return data[0]
 }
 
 export async function deleteProduct(id: string): Promise<void> {
