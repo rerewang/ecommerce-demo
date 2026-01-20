@@ -1,5 +1,4 @@
 import { CheckoutForm } from '@/components/checkout/CheckoutForm'
-import { Header } from '@/components/layout/Header'
 import { cookies } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { redirect } from 'next/navigation'
@@ -33,7 +32,6 @@ export default async function CheckoutPage({ searchParams }: { searchParams: Pro
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="font-heading text-3xl font-bold text-slate-900 mb-8 text-center">

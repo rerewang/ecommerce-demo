@@ -27,4 +27,27 @@ test.describe('Admin Flow (Real Admin)', () => {
     const rows = page.locator('tbody tr');
     await expect(rows.first()).toBeVisible();
   });
+
+  test('admin can manage products', async ({ page }) => {
+    // 1. Login
+    await page.goto('/login');
+    await page.getByLabel('邮箱').fill(email);
+    await page.getByLabel('密码').fill(password);
+    await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
+    await expect(page).toHaveURL('/');
+
+    // 2. Go to Admin Products
+    await page.goto('/admin/products');
+    
+    // 3. Verify Page Title
+    await expect(page.getByRole('heading', { name: '商品管理' })).toBeVisible();
+    
+    // 4. Verify Add Button
+    const addBtn = page.getByRole('button', { name: '新增商品' });
+    await expect(addBtn).toBeVisible();
+    
+    // 5. Verify List Content
+    // Wait for list to load
+    await expect(page.getByText('iPhone 15 Pro')).toBeVisible();
+  });
 });

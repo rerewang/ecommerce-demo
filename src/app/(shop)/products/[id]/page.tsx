@@ -5,7 +5,6 @@ import { formatCurrency } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { Header } from '@/components/layout/Header'
 import type { Metadata } from 'next'
 import { ProductDetailClient } from './ProductDetailClient'
 import { ProductFeatures } from '@/components/products/ProductFeatures'
@@ -43,7 +42,6 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   
   return (
     <div className="min-h-screen bg-slate-50">
-      <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="mb-6">
