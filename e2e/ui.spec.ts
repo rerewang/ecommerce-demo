@@ -25,7 +25,7 @@ test('cart icon navigates to cart page', async ({ page }) => {
   
   // Click cart icon (it's inside a Link now)
   // We locate it by the SVG or the wrapper button
-  const cartLink = page.locator('a[href="/cart"]');
+  const cartLink = page.locator('a[href="/cart"]').first();
   await expect(cartLink).toBeVisible();
   
   await cartLink.click();
