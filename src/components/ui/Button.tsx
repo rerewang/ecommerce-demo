@@ -23,17 +23,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           
           // Variants
           {
-            'bg-primary-500 text-white hover:bg-primary-600': variant === 'primary',
-            'bg-slate-100 text-slate-900 hover:bg-slate-200': variant === 'secondary',
-            'border-2 border-primary-500 text-primary-500 hover:bg-primary-50': variant === 'outline',
-            'text-slate-700 hover:bg-slate-100 shadow-none': variant === 'ghost',
+            'bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow-md transition-all duration-300': variant === 'primary',
+            'bg-white/80 text-secondary hover:bg-white border border-stone-200 shadow-sm backdrop-blur-sm': variant === 'secondary',
+            'border-2 border-primary text-primary hover:bg-primary/5': variant === 'outline',
+            'hover:bg-stone-100 text-stone-600 hover:text-stone-900 shadow-none': variant === 'ghost',
           },
           
           // Sizes
           {
-            'text-sm px-3 py-1.5 rounded-md': size === 'sm',
-            'text-base px-4 py-2 rounded-lg': size === 'md',
-            'text-lg px-6 py-3 rounded-xl': size === 'lg',
+            'text-sm px-3 py-1.5 rounded-full': size === 'sm',
+            'text-base px-4 py-2 rounded-full': size === 'md',
+            'text-lg px-6 py-3 rounded-full': size === 'lg',
           },
           
           className
