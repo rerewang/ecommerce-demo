@@ -9,10 +9,12 @@ test('user registration should succeed', async ({ page }) => {
   await page.fill('input[name="email"]', testEmail);
   await page.fill('input[name="password"]', 'test123456');
   
-  await page.getByRole('button', { name: '注册' }).click();
+  // Use specific selector for submit button
+  await page.locator('button[type="submit"]', { hasText: '注册' }).click();
   
   await expect(page).toHaveURL('/', { timeout: 5000 });
   
-  const userEmail = page.getByText(testEmail);
+  // Verify email in header
+  const userEmail = page.getByRole('banner').getByText(testEmail);
   await expect(userEmail).toBeVisible();
 });
