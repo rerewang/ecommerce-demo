@@ -7,6 +7,8 @@ import { formatCurrency } from '@/lib/utils'
 import type { Product } from '@/types/product'
 import { Edit, Trash2 } from 'lucide-react'
 
+import Link from 'next/link'
+
 export function AdminProductList() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
@@ -50,9 +52,11 @@ export function AdminProductList() {
               <p className="text-sm text-slate-500">库存: {product.stock}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Edit className="w-4 h-4" />
-              </Button>
+              <Link href={`/admin/products/${product.id}`}>
+                <Button variant="outline" size="sm">
+                  <Edit className="w-4 h-4" />
+                </Button>
+              </Link>
               <Button variant="outline" size="sm" onClick={() => handleDelete(product.id)}>
                 <Trash2 className="w-4 h-4" />
               </Button>
