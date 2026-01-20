@@ -135,9 +135,17 @@ export async function createProduct(input: CreateProductInput): Promise<Product>
 }
 
 export async function updateProduct(id: string, input: UpdateProductInput): Promise<Product> {
+  const updateData = { ...input }
+  
+  // Safe cleanup of read-only fields
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ('id' in updateData) delete (updateData as any).id
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if ('created_at' in updateData) delete (updateData as any).created_at
+  
   const { data, error } = await supabase
     .from('products')
-    .update(input)
+    .update(updateData)
     .eq('id', id)
     .select()
     .single()
