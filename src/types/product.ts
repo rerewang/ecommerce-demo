@@ -6,6 +6,8 @@ export interface ProductVariant {
 export interface ProductMetadata {
   features?: Record<string, string> // Key-value attributes e.g. { Material: "Cotton" }
   variants?: ProductVariant[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any // Allow other arbitrary keys
 }
 
 export interface Product {

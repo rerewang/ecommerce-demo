@@ -5,15 +5,16 @@ import { useState } from 'react'
 import { ProductMetadata } from '@/types/product'
 
 function TestWrapper() {
-  const [value, setValue] = useState<ProductMetadata>({})
+  const [value, setValue] = useState<ProductMetadata>({ features: {} })
   return <MetadataEditor value={value} onChange={setValue} />
 }
 
-test('adds a new feature', () => {
+test('adds a new feature row', () => {
   render(<TestWrapper />)
   
-  fireEvent.click(screen.getByText('添加属性'))
+  const addBtn = screen.getByText('Add Feature')
+  fireEvent.click(addBtn)
   
-  // Expect inputs to appear (2 textboxes per feature: key and value)
-  expect(screen.getAllByRole('textbox')).toHaveLength(2)
+  expect(screen.getAllByPlaceholderText(/Name/)).toHaveLength(1)
+  expect(screen.getAllByPlaceholderText(/Value/)).toHaveLength(1)
 })
