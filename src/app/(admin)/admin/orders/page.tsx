@@ -1,4 +1,3 @@
-import { Header } from '@/components/layout/Header'
 import { OrdersTable } from '@/components/admin/OrdersTable'
 import { getOrders } from '@/services/orders'
 import { createServerClient } from '@/lib/supabase-server'
@@ -45,48 +44,36 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
   ]
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <Header />
-      
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="font-heading text-3xl font-bold text-slate-900 mb-2">
-              订单管理
-            </h1>
-            <div className="flex gap-4 text-sm">
-              <Link href="/admin" className="text-slate-500 hover:text-slate-900">
-                商品管理
-              </Link>
-              <span className="text-slate-900 font-medium border-b-2 border-slate-900">
-                订单管理
-              </span>
-            </div>
-          </div>
+    <div>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 mb-2">
+            订单管理
+          </h1>
         </div>
+      </div>
 
-        <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
-          {tabs.map((tab) => {
-            const isActive = validStatus === tab.value
-            return (
-              <Link
-                key={tab.label}
-                href={tab.value ? `/admin/orders?status=${tab.value}` : '/admin/orders'}
+      <div className="mb-6 flex gap-2 overflow-x-auto pb-2">
+        {tabs.map((tab) => {
+          const isActive = validStatus === tab.value
+          return (
+            <Link
+              key={tab.label}
+              href={tab.value ? `/admin/orders?status=${tab.value}` : '/admin/orders'}
+            >
+              <Button
+                variant={isActive ? 'primary' : 'outline'}
+                size="sm"
+                className={!isActive ? 'bg-white' : ''}
               >
-                <Button
-                  variant={isActive ? 'primary' : 'outline'}
-                  size="sm"
-                  className={!isActive ? 'bg-white' : ''}
-                >
-                  {tab.label}
-                </Button>
-              </Link>
-            )
-          })}
-        </div>
-        
-        <OrdersTable orders={orders} />
-      </main>
+                {tab.label}
+              </Button>
+            </Link>
+          )
+        })}
+      </div>
+      
+      <OrdersTable orders={orders} />
     </div>
   )
 }
