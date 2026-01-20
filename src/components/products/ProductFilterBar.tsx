@@ -24,7 +24,7 @@ export function ProductFilterBar({ onFilterChange, initialFilter }: ProductFilte
       return
     }
     onFilterChange({ query: debouncedQuery, category, sort })
-  }, [debouncedQuery, category, sort])
+  }, [debouncedQuery, category, sort, onFilterChange])
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
