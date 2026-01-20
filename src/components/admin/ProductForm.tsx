@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { MetadataEditor } from './MetadataEditor'
 import { createProduct, updateProduct } from '@/services/products'
 import { useRouter } from 'next/navigation'
+import { createClientComponentClient } from '@/lib/supabase'
 
 interface Props {
   initialData?: Product
@@ -15,6 +16,7 @@ interface Props {
 
 export function ProductForm({ initialData, isEdit }: Props) {
   const router = useRouter()
+  const supabase = createClientComponentClient()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<Product>>(initialData || {
     name: '',
@@ -31,11 +33,11 @@ export function ProductForm({ initialData, isEdit }: Props) {
     setLoading(true)
     try {
       if (isEdit && initialData) {
-        await updateProduct(initialData.id, formData)
+        await updateProduct(supabase, initialData.id, formData)
       } else {
         // Ensure formData has required fields for creation
         const input = formData as unknown as CreateProductInput
-        await createProduct(input)
+        await createProduct(supabase, input)
       }
       router.push('/admin/products')
       router.refresh()

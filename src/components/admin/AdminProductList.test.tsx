@@ -3,6 +3,10 @@ import { AdminProductList } from './AdminProductList'
 import { describe, it, expect, vi } from 'vitest'
 import { getProducts } from '@/services/products'
 
+vi.mock('@/lib/supabase', () => ({
+  createClientComponentClient: vi.fn(() => ({})),
+}))
+
 vi.mock('@/services/products', () => ({
   getProducts: vi.fn(),
 }))

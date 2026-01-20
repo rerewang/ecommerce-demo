@@ -1,4 +1,5 @@
-import { supabase } from '@/lib/supabase'
+import { SupabaseClient } from '@supabase/supabase-js'
+import { supabase as defaultClient } from '@/lib/supabase'
 import type { Product, CreateProductInput, UpdateProductInput, ProductFilter } from '@/types/product'
 
 const MOCK_PRODUCTS: Product[] = [
@@ -41,7 +42,7 @@ const MOCK_PRODUCTS: Product[] = [
   }
 ]
 
-export async function getProducts(filter?: ProductFilter): Promise<Product[]> {
+export async function getProducts(filter?: ProductFilter, supabase: SupabaseClient = defaultClient): Promise<Product[]> {
   if (process.env.MOCK_DATA === 'true') {
     await new Promise(resolve => setTimeout(resolve, 500)) // Simulate latency
     
@@ -101,7 +102,7 @@ export async function getProducts(filter?: ProductFilter): Promise<Product[]> {
   return data || []
 }
 
-export async function getProductById(id: string): Promise<Product | null> {
+export async function getProductById(id: string, supabase: SupabaseClient = defaultClient): Promise<Product | null> {
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -112,7 +113,7 @@ export async function getProductById(id: string): Promise<Product | null> {
   return data
 }
 
-export async function getProductsByCategory(category: string): Promise<Product[]> {
+export async function getProductsByCategory(category: string, supabase: SupabaseClient = defaultClient): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -123,7 +124,7 @@ export async function getProductsByCategory(category: string): Promise<Product[]
   return data || []
 }
 
-export async function createProduct(input: CreateProductInput): Promise<Product> {
+export async function createProduct(supabase: SupabaseClient, input: CreateProductInput): Promise<Product> {
   const { data, error } = await supabase
     .from('products')
     .insert(input)
@@ -134,7 +135,7 @@ export async function createProduct(input: CreateProductInput): Promise<Product>
   return data
 }
 
-export async function updateProduct(id: string, input: UpdateProductInput): Promise<Product> {
+export async function updateProduct(supabase: SupabaseClient, id: string, input: UpdateProductInput): Promise<Product> {
   const updateData = { ...input }
   
   // Safe cleanup of read-only fields
@@ -156,7 +157,7 @@ export async function updateProduct(id: string, input: UpdateProductInput): Prom
   return data[0]
 }
 
-export async function deleteProduct(id: string): Promise<void> {
+export async function deleteProduct(supabase: SupabaseClient, id: string): Promise<void> {
   const { error } = await supabase
     .from('products')
     .delete()
