@@ -9,6 +9,8 @@ import { createProduct, updateProduct } from '@/services/products'
 import { useRouter } from 'next/navigation'
 import { createClientComponentClient } from '@/lib/supabase'
 
+import { toast } from 'react-hot-toast'
+
 interface Props {
   initialData?: Product
   isEdit?: boolean
@@ -38,8 +40,12 @@ export function ProductForm({ initialData, isEdit }: Props) {
         // Ensure formData has required fields for creation
         const input = formData as unknown as CreateProductInput
         await createProduct(supabase, input)
+        router.push('/admin/products')
+        router.refresh()
+        return
       }
-      router.push('/admin/products')
+      
+      toast.success('保存成功')
       router.refresh()
     } catch (error) {
       console.error('Failed to save product', error)

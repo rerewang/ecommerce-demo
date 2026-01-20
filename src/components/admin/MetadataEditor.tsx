@@ -66,10 +66,10 @@ export function MetadataEditor({ value = {}, onChange }: Props) {
            <div className="text-sm text-neutral-500">
              Manage product attributes, variants, and custom fields.
            </div>
-           <TabsList>
-             <TabsTrigger value="guided">Guided</TabsTrigger>
-             <TabsTrigger value="raw">Raw JSON</TabsTrigger>
-           </TabsList>
+            <TabsList>
+              <TabsTrigger value="guided" type="button">Guided</TabsTrigger>
+              <TabsTrigger value="raw" type="button">Raw JSON</TabsTrigger>
+            </TabsList>
          </div>
 
          <TabsContent value="guided" className="space-y-6">

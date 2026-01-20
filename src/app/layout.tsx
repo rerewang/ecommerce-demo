@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, Open_Sans } from "next/font/google";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -30,6 +31,7 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className={`${poppins.variable} ${openSans.variable} antialiased`}>
         {children}
+        <Toaster position="top-right" />
       </body>
     </html>
   );
