@@ -1,9 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import { ProductMetadata } from '@/types/product'
 import { Button } from '@/components/ui/Button'
+import { Select } from '@/components/ui/Select'
 import { Input } from '@/components/ui/Input'
-import { Plus, Trash2 } from 'lucide-react'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/Tabs'
+import { FeaturesEditor } from './metadata/FeaturesEditor'
+import { VariantsEditor } from './metadata/VariantsEditor'
+import { GenericEditor } from './metadata/GenericEditor'
+import { RawJsonEditor } from './metadata/RawJsonEditor'
+import { Plus } from 'lucide-react'
 
 interface Props {
   value?: ProductMetadata
@@ -11,111 +18,126 @@ interface Props {
 }
 
 export function MetadataEditor({ value = {}, onChange }: Props) {
-  const features = value.features || {}
+  const [activeTab, setActiveTab] = useState('guided')
+  const [newSectionType, setNewSectionType] = useState('features')
+  const [customKeyName, setCustomKeyName] = useState('')
 
-  const updateFeature = (key: string, newVal: string, oldKey?: string) => {
-    const newFeatures = { ...features }
-    if (oldKey !== undefined && oldKey !== key) {
-      delete newFeatures[oldKey]
+  const features = value.features
+  const variants = value.variants
+  
+  const otherKeys = Object.keys(value).filter(k => k !== 'features' && k !== 'variants')
+
+  const handleUpdate = (updates: Partial<ProductMetadata>) => {
+    onChange({ ...value, ...updates })
+  }
+
+  const handleRemoveSection = (key: string) => {
+    const newValue = { ...value }
+    delete newValue[key]
+    onChange(newValue)
+  }
+
+  const handleRenameSection = (oldKey: string, newKey: string) => {
+    if (oldKey === newKey || !newKey) return
+    const newValue = { ...value }
+    const sectionValue = newValue[oldKey]
+    delete newValue[oldKey]
+    newValue[newKey] = sectionValue
+    onChange(newValue)
+  }
+
+  const handleAddSection = () => {
+    if (newSectionType === 'features') {
+      if (!features) handleUpdate({ features: {} })
+    } else if (newSectionType === 'variants') {
+      if (!variants) handleUpdate({ variants: [] })
+    } else if (newSectionType === 'custom') {
+      if (customKeyName && !(customKeyName in value)) {
+        handleUpdate({ [customKeyName]: '' })
+        setCustomKeyName('')
+      }
     }
-    if (key) newFeatures[key] = newVal
-    onChange({ ...value, features: newFeatures })
-  }
-
-  const removeFeature = (key: string) => {
-    const newFeatures = { ...features }
-    delete newFeatures[key]
-    onChange({ ...value, features: newFeatures })
-  }
-
-  const addFeature = () => {
-    onChange({
-      ...value,
-      features: { ...features, '': '' }
-    })
-  }
-
-  const variants = value.variants || []
-
-  const addVariant = () => {
-    onChange({
-      ...value,
-      variants: [...variants, { name: '', values: [] }]
-    })
-  }
-
-  const updateVariant = (index: number, field: 'name' | 'values', newVal: string) => {
-    const newVariants = [...variants]
-    if (field === 'name') {
-      newVariants[index].name = newVal
-    } else {
-      newVariants[index].values = newVal.split(',').map(s => s.trim()).filter(Boolean)
-    }
-    onChange({ ...value, variants: newVariants })
-  }
-
-  const removeVariant = (index: number) => {
-    const newVariants = variants.filter((_, i) => i !== index)
-    onChange({ ...value, variants: newVariants })
   }
 
   return (
-    <div className="space-y-6 border p-4 rounded-lg bg-white">
-      <div>
-        <h3 className="text-lg font-medium mb-4">商品属性 (Features)</h3>
-        <div className="space-y-3">
-          {Object.entries(features).map(([key, val], index) => (
-            <div key={index} className="flex gap-2">
-              <Input 
-                placeholder="属性名 (如: Material)" 
-                value={key} 
-                onChange={(e) => updateFeature(e.target.value, val, key)}
-              />
-              <Input 
-                placeholder="属性值 (如: Cotton)" 
-                value={val} 
-                onChange={(e) => updateFeature(key, e.target.value)}
-              />
-              <Button variant="ghost" size="sm" onClick={() => removeFeature(key)}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-          <Button type="button" onClick={addFeature} variant="outline" size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            添加属性
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-4">
+       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+         <div className="flex items-center justify-between mb-4">
+           <div className="text-sm text-neutral-500">
+             Manage product attributes, variants, and custom fields.
+           </div>
+           <TabsList>
+             <TabsTrigger value="guided">Guided</TabsTrigger>
+             <TabsTrigger value="raw">Raw JSON</TabsTrigger>
+           </TabsList>
+         </div>
 
-      <div className="pt-6 border-t">
-        <h3 className="text-lg font-medium mb-4">商品规格 (Variants)</h3>
-        <div className="space-y-3">
-          {variants.map((variant, index) => (
-            <div key={index} className="flex gap-2">
-              <Input 
-                placeholder="规格名 (如: Color)" 
-                value={variant.name} 
-                onChange={(e) => updateVariant(index, 'name', e.target.value)}
-                className="w-1/3"
-              />
-              <Input 
-                placeholder="值 (逗号分隔, 如: Red, Blue)" 
-                defaultValue={variant.values.join(', ')} 
-                onBlur={(e) => updateVariant(index, 'values', e.target.value)}
-                className="flex-1"
-              />
-              <Button variant="ghost" size="sm" onClick={() => removeVariant(index)}>
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
-          ))}
-          <Button type="button" onClick={addVariant} variant="outline" size="sm">
-            <Plus className="w-4 h-4 mr-2" />
-            添加规格
-          </Button>
-        </div>
-      </div>
+         <TabsContent value="guided" className="space-y-6">
+           {features && (
+             <FeaturesEditor 
+               value={features} 
+               onChange={(v) => handleUpdate({ features: v })} 
+               onRemove={() => handleRemoveSection('features')} 
+             />
+           )}
+
+           {variants && (
+             <VariantsEditor 
+               value={variants} 
+               onChange={(v) => handleUpdate({ variants: v })} 
+               onRemove={() => handleRemoveSection('variants')} 
+             />
+           )}
+
+           {otherKeys.map(key => (
+             <GenericEditor 
+               key={key} 
+               name={key} 
+               value={value[key]} 
+               onChange={(v) => handleUpdate({ [key]: v })} 
+               onRename={(newKey) => handleRenameSection(key, newKey)}
+               onRemove={() => handleRemoveSection(key)} 
+             />
+           ))}
+
+           <div className="border-t pt-4">
+             <div className="flex gap-2 items-center bg-neutral-50 p-3 rounded-md">
+               <span className="text-sm font-medium">Add Section:</span>
+               <Select 
+                 value={newSectionType} 
+                 onChange={e => setNewSectionType(e.target.value)}
+                 className="w-40 h-9"
+               >
+                 <option value="features" disabled={!!features}>Features</option>
+                 <option value="variants" disabled={!!variants}>Variants</option>
+                 <option value="custom">Custom Field...</option>
+               </Select>
+               
+               {newSectionType === 'custom' && (
+                 <Input 
+                   className="w-40 h-9"
+                   placeholder="Field Name"
+                   value={customKeyName}
+                   onChange={e => setCustomKeyName(e.target.value)}
+                 />
+               )}
+               
+               <Button onClick={handleAddSection} size="sm" disabled={newSectionType === 'custom' && !customKeyName}>
+                 <Plus className="w-4 h-4 mr-2" />
+                 Add
+               </Button>
+             </div>
+           </div>
+         </TabsContent>
+
+         <TabsContent value="raw">
+           <RawJsonEditor 
+             key={JSON.stringify(value)} 
+             value={value} 
+             onChange={v => onChange(v as ProductMetadata)} 
+           />
+         </TabsContent>
+       </Tabs>
     </div>
   )
 }
