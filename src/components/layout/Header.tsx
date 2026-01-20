@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { User, LogOut } from 'lucide-react'
-import { logout } from '@/app/login/actions'
+import { logout } from '@/app/(shop)/login/actions'
 
 export async function Header() {
   const cookieStore = await cookies()

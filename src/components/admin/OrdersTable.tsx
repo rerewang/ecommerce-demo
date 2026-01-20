@@ -1,6 +1,6 @@
 import { Order } from '@/types/order'
 import { OrderStatusBadge } from '@/components/orders/OrderStatusBadge'
-import { OrderActions } from './OrderActions'
+import { OrderStatusSelect } from './OrderStatusSelect'
 import { formatCurrency } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -44,7 +44,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                   {new Date(order.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-4 py-3 text-right">
-                  <OrderActions orderId={order.id} currentStatus={order.status} />
+                  <OrderStatusSelect orderId={order.id} currentStatus={order.status} />
                 </td>
               </tr>
             ))}
