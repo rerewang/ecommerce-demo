@@ -4,18 +4,20 @@ import { useEffect, useState } from 'react'
 import { getProducts, deleteProduct } from '@/services/products'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
+import { createClientComponentClient } from '@/lib/supabase'
 import type { Product } from '@/types/product'
 import { Edit, Trash2 } from 'lucide-react'
 
 import Link from 'next/link'
 
 export function AdminProductList() {
+  const supabase = createClientComponentClient()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
   const loadProducts = async () => {
     try {
-      const data = await getProducts()
+      const data = await getProducts(undefined, supabase)
       setProducts(data)
     } finally {
       setLoading(false)
@@ -30,7 +32,7 @@ export function AdminProductList() {
     if (!confirm('确定要删除吗？')) return
     
     try {
-      await deleteProduct(id)
+      await deleteProduct(supabase, id)
       setProducts(products.filter(p => p.id !== id))
     } catch {
       alert('删除失败')
