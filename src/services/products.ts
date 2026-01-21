@@ -103,6 +103,10 @@ export async function getProducts(filter?: ProductFilter, supabase: SupabaseClie
 }
 
 export async function getProductById(id: string, supabase: SupabaseClient = defaultClient): Promise<Product | null> {
+  if (process.env.MOCK_DATA === 'true') {
+    await new Promise(resolve => setTimeout(resolve, 300))
+    return MOCK_PRODUCTS.find(p => p.id === id) || null
+  }
   const { data, error } = await supabase
     .from('products')
     .select('*')

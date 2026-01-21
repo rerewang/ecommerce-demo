@@ -12,11 +12,15 @@ test.describe('E2E Direct Buy Flow', () => {
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
     await expect(page).toHaveURL('/');
 
-    // 2. Go to PDP
-    // We need a valid product. Assuming first product in list.
-    await page.locator('a[href^="/products/"]').first().click();
+    // 2. Navigate to products
+    await page.goto('/products');
     
-    // 3. Select variant if exists (Mock product 1 has variants)
+    // 3. Go to PDP
+    // Find a product that is in stock (has "加入购物车" button in the card)
+    const inStockProduct = page.locator('a').filter({ has: page.getByText('加入购物车') }).first();
+    await inStockProduct.click();
+    
+    // 4. Select variant if exists (Mock product 1 has variants)
     // Wait for page to load
     await expect(page.getByText('商品参数')).toBeVisible({ timeout: 10000 }).catch(() => {});
 
@@ -25,17 +29,17 @@ test.describe('E2E Direct Buy Flow', () => {
       await colorBtn.click()
     }
 
-    // 4. Click Buy Now
+    // 5. Click Buy Now
     await page.getByText('立即购买').click()
     
-    // 5. Expect Checkout with direct source
+    // 6. Expect Checkout with direct source
     await expect(page).toHaveURL(/checkout\?source=direct/)
     
-    // 6. Verify Form appears (not empty cart)
+    // 7. Verify Form appears (not empty cart)
     const nameField = page.getByLabel('姓名');
     await expect(nameField).toBeVisible();
     
-    // 7. Fill and Pay
+    // 8. Fill and Pay
     await nameField.fill('Direct User');
     await page.getByLabel('地址').fill('Direct St');
     await page.getByLabel('城市').fill('Direct City');
@@ -45,7 +49,7 @@ test.describe('E2E Direct Buy Flow', () => {
     await expect(submitBtn).toBeVisible();
     await submitBtn.click();
     
-    // 8. Expect Redirect to Order
+    // 9. Expect Redirect to Order
     await expect(page).toHaveURL(/\/orders\/.+/, { timeout: 15000 });
   })
 })

@@ -32,6 +32,7 @@ const config: Config = {
           DEFAULT: "rgba(255, 255, 255, 0.7)", // Glass
           foreground: "#0C0A09",
         },
+        success: "#10B981",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "sans-serif"],
