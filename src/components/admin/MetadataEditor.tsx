@@ -17,29 +17,30 @@ interface Props {
   onChange: (value: ProductMetadata) => void
 }
 
-export function MetadataEditor({ value = {}, onChange }: Props) {
+export function MetadataEditor({ value, onChange }: Props) {
+  const safeValue = value || {}
   const [activeTab, setActiveTab] = useState('guided')
   const [newSectionType, setNewSectionType] = useState('features')
   const [customKeyName, setCustomKeyName] = useState('')
 
-  const features = value.features
-  const variants = value.variants
+  const features = safeValue.features
+  const variants = safeValue.variants
   
-  const otherKeys = Object.keys(value).filter(k => k !== 'features' && k !== 'variants')
+  const otherKeys = Object.keys(safeValue).filter(k => k !== 'features' && k !== 'variants')
 
   const handleUpdate = (updates: Partial<ProductMetadata>) => {
-    onChange({ ...value, ...updates })
+    onChange({ ...safeValue, ...updates })
   }
 
   const handleRemoveSection = (key: string) => {
-    const newValue = { ...value }
+    const newValue = { ...safeValue }
     delete newValue[key]
     onChange(newValue)
   }
 
   const handleRenameSection = (oldKey: string, newKey: string) => {
     if (oldKey === newKey || !newKey) return
-    const newValue = { ...value }
+    const newValue = { ...safeValue }
     const sectionValue = newValue[oldKey]
     delete newValue[oldKey]
     newValue[newKey] = sectionValue
@@ -52,7 +53,7 @@ export function MetadataEditor({ value = {}, onChange }: Props) {
     } else if (newSectionType === 'variants') {
       if (!variants) handleUpdate({ variants: [] })
     } else if (newSectionType === 'custom') {
-      if (customKeyName && !(customKeyName in value)) {
+      if (customKeyName && !(customKeyName in safeValue)) {
         handleUpdate({ [customKeyName]: '' })
         setCustomKeyName('')
       }
@@ -93,7 +94,7 @@ export function MetadataEditor({ value = {}, onChange }: Props) {
              <GenericEditor 
                key={key} 
                name={key} 
-               value={value[key]} 
+               value={safeValue[key]} 
                onChange={(v) => handleUpdate({ [key]: v })} 
                onRename={(newKey) => handleRenameSection(key, newKey)}
                onRemove={() => handleRemoveSection(key)} 
@@ -132,8 +133,8 @@ export function MetadataEditor({ value = {}, onChange }: Props) {
 
          <TabsContent value="raw">
            <RawJsonEditor 
-             key={JSON.stringify(value)} 
-             value={value} 
+             key={JSON.stringify(safeValue)} 
+             value={safeValue} 
              onChange={v => onChange(v as ProductMetadata)} 
            />
          </TabsContent>

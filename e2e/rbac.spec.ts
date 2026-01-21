@@ -20,6 +20,5 @@ test('RBAC: customer cannot access admin', async ({ page }) => {
   
   // 4. Expect redirect to home (since user is not admin)
   // The middleware redirects non-admins to '/'
-  await expect(page).toHaveURL(/[^a]*/); // Matches anything not containing admin? No, better check explicitly
-  await expect(page).toHaveURL('http://localhost:3000/'); 
+  await expect(page).toHaveURL('/'); 
 });

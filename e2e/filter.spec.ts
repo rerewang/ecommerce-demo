@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Product Filtering & Search', () => {
   test('updates URL when searching', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/products');
 
     // Find search input
     const searchInput = page.getByPlaceholder('Search products...');
@@ -16,7 +16,7 @@ test.describe('Product Filtering & Search', () => {
   });
 
   test('updates URL when filtering by category', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/products');
 
     // Find category select
     const categorySelect = page.getByRole('combobox', { name: /category/i });
@@ -30,7 +30,7 @@ test.describe('Product Filtering & Search', () => {
   });
 
   test('updates URL when sorting', async ({ page }) => {
-    await page.goto('/');
+    await page.goto('/products');
 
     // Find sort select
     const sortSelect = page.getByRole('combobox', { name: /sort/i });
@@ -44,7 +44,7 @@ test.describe('Product Filtering & Search', () => {
   });
 
   test('preserves existing params when adding new ones', async ({ page }) => {
-    await page.goto('/?category=Electronics');
+    await page.goto('/products?category=Electronics');
 
     // Search
     const searchInput = page.getByPlaceholder('Search products...');
@@ -56,7 +56,7 @@ test.describe('Product Filtering & Search', () => {
   });
 
   test('removes params when cleared', async ({ page }) => {
-    await page.goto('/?q=phone');
+    await page.goto('/products?q=phone');
 
     const searchInput = page.getByPlaceholder('Search products...');
     await searchInput.fill('');

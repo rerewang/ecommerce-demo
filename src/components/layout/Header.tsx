@@ -26,51 +26,57 @@ export async function Header() {
   const { data: { user } } = await supabase.auth.getUser()
 
   return (
-    <header className="bg-white shadow-sm border-b border-slate-200 sticky top-0 z-50">
+    <header className="bg-white/80 backdrop-blur-md border-b border-white/50 sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center">
-            <h1 className="font-heading text-2xl font-bold text-slate-900">
-              电商 Demo
+        <div className="flex items-center justify-between h-20">
+          <Link href="/" className="flex items-center group">
+            <h1 className="font-serif text-2xl font-medium tracking-tight text-stone-900 group-hover:text-primary transition-colors">
+              PetPixel
             </h1>
           </Link>
           
-          <nav className="flex items-center gap-6">
+          <nav className="flex items-center gap-8">
             <Link
               href="/"
-              className="text-slate-700 hover:text-slate-900 font-medium transition-colors"
+              className="text-stone-600 hover:text-stone-900 font-medium transition-colors text-sm tracking-wide"
             >
-              商品列表
+              Home
+            </Link>
+            <Link
+              href="/products"
+              className="text-stone-600 hover:text-stone-900 font-medium transition-colors text-sm tracking-wide"
+            >
+              Gallery
             </Link>
             
             {user ? (
               <>
                 <Link
                   href="/orders"
-                  className="text-slate-700 hover:text-slate-900 font-medium transition-colors"
+                  className="text-stone-600 hover:text-stone-900 font-medium transition-colors text-sm tracking-wide"
                 >
-                  我的订单
+                  My Orders
                 </Link>
                 <Link
                   href="/admin"
-                  className="text-slate-700 hover:text-slate-900 font-medium transition-colors"
+                  className="text-stone-600 hover:text-stone-900 font-medium transition-colors text-sm tracking-wide"
                 >
-                  管理后台
+                  Admin
                 </Link>
-                <div className="flex items-center gap-2 text-sm text-slate-600 border-l pl-4 border-slate-200">
+                <div className="flex items-center gap-2 text-sm text-stone-500 border-l pl-4 border-stone-200">
                   <User className="w-4 h-4" />
-                  <span className="hidden sm:inline">{user.email}</span>
+                  <span className="hidden sm:inline font-medium">{user.email}</span>
                 </div>
                 <form action={logout}>
-                  <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50">
+                  <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50/50">
                     <LogOut className="w-4 h-4 mr-2" />
-                    退出
+                    Exit
                   </Button>
                 </form>
               </>
             ) : (
               <Link href="/login">
-                <Button variant="secondary" size="sm">登录</Button>
+                <Button variant="secondary" size="sm" className="rounded-full px-6">Sign In</Button>
               </Link>
             )}
             
