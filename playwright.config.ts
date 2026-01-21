@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   webServer: {
     command: process.env.CI ? 'npm run start -- -H 0.0.0.0' : 'npm run dev',
-    url: 'http://127.0.0.1:3000',
+    url: 'http://127.0.0.1:3000/health',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
     stdout: 'pipe',
