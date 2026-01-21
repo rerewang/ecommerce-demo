@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { getProducts, deleteProduct } from '@/services/products'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
@@ -15,18 +15,18 @@ export function AdminProductList() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
       const data = await getProducts(undefined, supabase)
       setProducts(data)
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase])
 
   useEffect(() => {
     loadProducts()
-  }, [])
+  }, [loadProducts])
 
   const handleDelete = async (id: string) => {
     if (!confirm('确定要删除吗？')) return
