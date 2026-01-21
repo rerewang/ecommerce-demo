@@ -2,16 +2,17 @@
 
 import { ShoppingCart } from 'lucide-react'
 import { useCartStore } from '@/store/cart'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 export function CartBadge() {
   const [mounted, setMounted] = useState(false)
   const totalItems = useCartStore(state => state.getTotalItems())
   
-  if (typeof window !== 'undefined' && !mounted) {
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
-  }
+  }, [])
 
   const displayCount = mounted ? totalItems : 0
 

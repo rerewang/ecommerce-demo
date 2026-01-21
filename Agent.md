@@ -467,3 +467,19 @@ All agent sessions should be documented in `docs/retrospective/` with:
 ---
 
 **When in doubt**: Follow TDD, verify with 5 commands, consult `AGENTS.md`, document your work.
+
+---
+
+## 🔒 Secrets & Notifications
+
+Sensitive credentials and webhook URLs are stored in the `.secrets` file (gitignored).
+
+**Agent Requirements**:
+1. **Read-Only**: Use `.secrets` to read configuration (Supabase URL/Key, Discord Webhook).
+2. **Notification**: Use the Discord Webhook for critical alerts:
+   - CI/CD Failures
+   - Blocking Issues
+   - Decisions Required
+   - Completion Reports
+
+**Do NOT commit `.secrets` to git.**
