@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Rubik, Nunito_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
-const inter = Inter({
+const rubik = Rubik({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-rubik",
   display: "swap",
 });
 
-const playfair = Playfair_Display({
+const nunitoSans = Nunito_Sans({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-nunito-sans",
   display: "swap",
 });
 
@@ -27,7 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased bg-background text-foreground`}>
+      <body className={`${rubik.variable} ${nunitoSans.variable} font-sans antialiased bg-background text-foreground`}>
         {children}
         <Toaster position="top-right" />
       </body>

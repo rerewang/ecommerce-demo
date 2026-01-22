@@ -9,34 +9,38 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#FAFAF9", // Stone-50
-        foreground: "#0C0A09", // Stone-950
+        background: "#F8FAFC",
+        foreground: "#1E293B",
         primary: {
-          DEFAULT: "#CA8A04", // Yellow-600 (Gold/Bronze)
+          DEFAULT: "#3B82F6",
           foreground: "#FFFFFF",
-          50: "#FEFCE8",
-          100: "#FEF9C3",
-          500: "#EAB308",
-          600: "#CA8A04", // Primary
-          700: "#A16207",
+          50: "#EFF6FF",
+          100: "#DBEAFE",
+          500: "#3B82F6",
+          600: "#2563EB",
+          700: "#1D4ED8",
         },
         secondary: {
-          DEFAULT: "#44403C", // Stone-700
-          foreground: "#FAFAF9",
+          DEFAULT: "#60A5FA",
+          foreground: "#FFFFFF",
         },
         muted: {
-          DEFAULT: "#F5F5F4", // Stone-100
-          foreground: "#78716C", // Stone-500
+          DEFAULT: "#F1F5F9",
+          foreground: "#64748B",
+        },
+        cta: {
+          DEFAULT: "#F97316",
+          foreground: "#FFFFFF",
         },
         card: {
-          DEFAULT: "rgba(255, 255, 255, 0.7)", // Glass
-          foreground: "#0C0A09",
+          DEFAULT: "#F8FAFC",
+          foreground: "#1E293B",
         },
         success: "#10B981",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "sans-serif"],
-        serif: ["var(--font-playfair)", "serif"],
+        sans: ["var(--font-nunito-sans)", "sans-serif"],
+        serif: ["var(--font-rubik)", "sans-serif"],
       },
       backdropBlur: {
         xs: '2px',
