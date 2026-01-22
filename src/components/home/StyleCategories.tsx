@@ -7,21 +7,21 @@ const STYLES = [
     name: 'Classic Oil', 
     description: 'Renaissance style portraits',
     color: 'bg-amber-100',
-    img: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?w=400&h=600&fit=crop' 
+    img: 'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&w=800&q=80'
   },
   { 
     id: 'cyber', 
     name: 'Cyberpunk', 
     description: 'Neon lights and chrome',
     color: 'bg-purple-100',
-    img: 'https://images.unsplash.com/photo-1535378437326-971029110397?w=400&h=600&fit=crop'
+    img: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=800&q=80'
   },
   { 
     id: '3d', 
     name: '3D Pixar', 
     description: 'Cute animated character style',
     color: 'bg-blue-100',
-    img: 'https://images.unsplash.com/photo-1633511090164-b43840ea1607?w=400&h=600&fit=crop'
+    img: 'https://images.unsplash.com/photo-1518791841217-8f162f1e1131?auto=format&fit=crop&w=800&q=80'
   },
 ]
 
