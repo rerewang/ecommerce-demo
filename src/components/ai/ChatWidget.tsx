@@ -67,17 +67,19 @@ export function ChatWidget() {
   };
 
   const handleDebouncedSubmit = useDebouncedCallback(() => {
-    if (!input.trim()) return;
+    const safeInput = typeof input === 'string' ? input : '';
+    if (!safeInput.trim()) return;
     void handleSubmit();
   }, 200);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim()) return;
+    const safeInput = typeof input === 'string' ? input : '';
+    if (!safeInput.trim()) return;
     try {
       setError(null);
-      setLastSent(input);
-      await sendMessage({ text: input });
+      setLastSent(safeInput);
+      await sendMessage({ text: safeInput });
     } catch (err) {
       console.error('sendMessage error', err);
       setError('Request failed. Tap retry to send again.');
@@ -87,7 +89,8 @@ export function ChatWidget() {
   };
 
   const handleRetry = async () => {
-    const text = lastSent || input;
+    const raw = lastSent || input;
+    const text = typeof raw === 'string' ? raw : '';
     if (!text.trim()) return;
     try {
       setError(null);
@@ -122,6 +125,8 @@ export function ChatWidget() {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  const safeInputValue = typeof input === 'string' ? input : '';
 
   return (
     <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end pointer-events-none">
@@ -174,13 +179,13 @@ export function ChatWidget() {
                       onClick={() => setInput('Find oil paintings under $200')}
                       className="text-xs bg-white border border-stone-200 rounded-full px-3 py-2 hover:bg-stone-50 transition-colors"
                     >
-                      &quot;Find oil paintings under $200&quot;
+                      Find oil paintings under $200
                     </button>
                     <button 
                       onClick={() => setInput('Show me something royal')}
                       className="text-xs bg-white border border-stone-200 rounded-full px-3 py-2 hover:bg-stone-50 transition-colors"
                     >
-                      &quot;Show me something royal&quot;
+                      Show me something royal
                     </button>
                   </div>
                 </div>
@@ -225,7 +230,7 @@ export function ChatWidget() {
                   <div className={`
                     w-8 h-8 rounded-full flex items-center justify-center shrink-0
                     ${m.role === 'user' ? 'bg-stone-200' : 'bg-primary/10'}
-                  `}>
+                 `}>
                     {m.role === 'user' ? <UserIcon className="w-4 h-4 text-stone-600" /> : <Bot className="w-4 h-4 text-primary" />}
                   </div>
                   
@@ -235,7 +240,7 @@ export function ChatWidget() {
                       ? 'bg-stone-900 text-white rounded-tr-sm' 
                       : 'bg-white border border-stone-200 text-stone-800 rounded-tl-sm shadow-sm'
                     }
-                  `}>
+                 `}>
                     {m.role === 'user' ? (
                       <div className="whitespace-pre-wrap break-words">{content}</div>
                     ) : (
@@ -298,7 +303,7 @@ export function ChatWidget() {
               <form onSubmit={handleSubmit} className="flex gap-2 items-center">
                 <input
                   className="flex-1 bg-stone-50 border border-stone-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-                  value={input}
+                  value={safeInputValue}
                   onChange={handleInputChange}
                   placeholder="Ask about art styles..."
                 />
@@ -319,14 +324,14 @@ export function ChatWidget() {
                     variant="ghost"
                     disabled={!canRegenerate}
                     className="rounded-full w-10 h-10 p-0 flex items-center justify-center"
-                  onClick={handleRegenerate}
+                    onClick={handleRegenerate}
                   >
                     <Loader2 className="w-4 h-4" />
                   </Button>
                   <Button 
                     type="button"
                     size="sm" 
-                    disabled={isLoading || !input.trim()}
+                    disabled={isLoading || !safeInputValue.trim()}
                     className="rounded-full w-10 h-10 p-0 flex items-center justify-center"
                     onClick={() => handleDebouncedSubmit()}
                   >
