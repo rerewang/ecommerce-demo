@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { tool } from 'ai';
+import { tool, type Tool, type ToolExecutionOptions } from 'ai';
 import { createClient } from '@supabase/supabase-js';
 
 const ProductSchema = z.object({
@@ -73,18 +73,20 @@ const filterFallback = (query?: string, maxPrice?: number) => {
   return result.slice(0, 5);
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
+export const searchParamsSchema = z.object({
+  query: z.string().describe('Keywords to search for in product name or description'),
+  category: z.string().optional().describe('Product category (e.g., Oil, Watercolor, Pop Art)'),
+  maxPrice: z.number().optional().describe('Maximum price allowed'),
+});
+
 export const searchProducts = tool({
   description: 'Search for products in the store based on keywords, category, or price range',
-  parameters: z.object({
-    query: z.string().describe('Keywords to search for in product name or description'),
-    category: z.string().optional().describe('Product category (e.g., Oil, Watercolor, Pop Art)'),
-    maxPrice: z.number().optional().describe('Maximum price allowed'),
-  }),
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  execute: async (args) => {
+  inputSchema: searchParamsSchema,
+  execute: async (
+    args: z.infer<typeof searchParamsSchema>,
+    _options: ToolExecutionOptions,
+  ): Promise<z.infer<typeof ProductSchema>[]> => {
+    void _options;
     const { query, category, maxPrice } = args || {};
     const safeQuery = (query && query.trim()) ? query.trim() : 'oil painting';
     const safeMaxPrice = typeof maxPrice === 'number' ? maxPrice : 120;
@@ -121,4 +123,4 @@ export const searchProducts = tool({
 
     return data || [];
   },
-});
+}) as Tool<z.infer<typeof searchParamsSchema>, z.infer<typeof ProductSchema>[]>;

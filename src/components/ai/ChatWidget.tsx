@@ -188,12 +188,34 @@ export function ChatWidget() {
               
               {messages.map((m: UIMessage & { content?: string; parts?: { type?: string; text?: string }[]; toolInvocations?: ToolInvocation[] }) => {
                 const parts = m.parts;
-                const content = typeof m.content === 'string'
+                let content = typeof m.content === 'string'
                   ? m.content
                   : parts
                       ?.filter((p) => p?.type === 'text' && typeof (p as { text?: string }).text === 'string')
                       .map((p) => (p as { text?: string }).text || '')
                       .join('') || '';
+
+                // Check for embedded products from server-side injection
+                let embeddedProducts: Product[] = [];
+                // Regex matches :::products [json] ::: across lines
+                const productsMatch = content.match(/:::products\s+(\[[\s\S]*?\])\s+:::/);
+                if (productsMatch) {
+                  try {
+                    embeddedProducts = JSON.parse(productsMatch[1]);
+                    content = content.replace(productsMatch[0], '').trim();
+                  } catch (e) {
+                    console.error('Failed to parse embedded products', e);
+                  }
+                }
+
+                const invocationsToRender = [...(m.toolInvocations || [])];
+                if (embeddedProducts.length > 0) {
+                  invocationsToRender.push({
+                    toolName: 'searchProducts',
+                    toolCallId: `embedded-${m.id}`,
+                    result: embeddedProducts,
+                  });
+                }
 
                 return (
                 <div
@@ -225,19 +247,21 @@ export function ChatWidget() {
                     )}
                     
                     {/* Render tool invocations if any (simplified) */}
-                    {(m.toolInvocations || []).map((toolInvocation) => {
+                    {invocationsToRender.map((toolInvocation) => {
                       if (toolInvocation.toolName === 'searchProducts' && toolInvocation.result) {
                         const products = toolInvocation.result as Product[];
-                        if (!products || products.length === 0) {
-                          return (
-                            <div key={toolInvocation.toolCallId} className="mt-3 text-xs text-stone-500">
-                              No products found. Try adjusting keywords or budget.
-                            </div>
-                          );
-                        }
+                        const hasProducts = !!products && products.length > 0;
+                        const showSummaryFallback = !content.trim() || !hasProducts;
                         return (
                           <div key={toolInvocation.toolCallId} className="mt-3 flex flex-col gap-2">
-                            {products.map((product) => (
+                            {showSummaryFallback && (
+                              <div className="text-xs text-stone-500">
+                                {hasProducts
+                                  ? '以下是匹配的商品，如需调整预算或风格请告诉我。'
+                                  : '未找到符合条件的商品，试试调整预算或关键词。'}
+                              </div>
+                            )}
+                            {hasProducts && products.map((product) => (
                               <div key={product.id} className="bg-stone-50 p-2 rounded-lg border border-stone-100 flex gap-3">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={product.image_url} alt={product.name} className="w-12 h-12 object-cover rounded-md bg-stone-200" />

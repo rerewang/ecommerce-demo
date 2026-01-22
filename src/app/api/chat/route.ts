@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const body = await req.json();
   const rawMessages: IncomingMessage[] = Array.isArray(body?.messages) ? body.messages : [];
 
-  // Normalize incoming messages (supports either `content` string or `parts` array)
+  // Normalize incoming messages
   const normalizedMessages = rawMessages.map((m) => {
     let content = '';
     if (typeof m?.content === 'string') {
@@ -34,46 +34,37 @@ export async function POST(req: Request) {
     };
   });
 
-  // Extract last user message text for fallback tool arguments
+  // Server-side search to guarantee product data
   const lastUserMessage = [...normalizedMessages].reverse().find((m) => m.role === 'user')?.content || '';
-
-  // Fallback wrapper: if model omits query/maxPrice, derive from user text
   const parseMaxPrice = (text: string): number | undefined => {
     const match = text.match(/\b(\d+(?:\.\d+)?)\b/);
     if (!match) return undefined;
     const num = Number(match[1]);
     return Number.isFinite(num) ? num : undefined;
   };
+  const query = lastUserMessage || 'oil painting';
+  const maxPrice = parseMaxPrice(lastUserMessage) ?? 120;
+  const products = (await searchProducts.execute?.({ query, maxPrice }, { toolCallId: 'server-side', messages: normalizedMessages })) ?? [];
+  const productsJson = JSON.stringify(products);
 
-  const searchProductsWithFallback = {
-    ...searchProducts,
-    execute: async (args: { query?: string; category?: string; maxPrice?: number } = {}) => {
-      const fallbackQuery = lastUserMessage || args.query || '';
-      const fallbackMaxPrice =
-        typeof args.maxPrice === 'number' ? args.maxPrice : parseMaxPrice(lastUserMessage) ?? 120;
-      const mergedArgs = {
-        ...args,
-        query: args.query?.trim() || fallbackQuery || 'oil painting',
-        maxPrice: fallbackMaxPrice,
-      };
-      return (
-        await searchProducts.execute?.(mergedArgs, {
-          toolCallId: 'fallback-search',
-          messages: normalizedMessages,
-        })
-      ) ?? [];
-    },
-  };
+  const systemPrompt = `${SYSTEM_PROMPT}
+CONTEXT:
+I have already searched for products matching the user's request.
+Found Products: ${productsJson}
 
-  const result = streamText({
+INSTRUCTIONS:
+1. Summarize the products found in 1-2 sentences.
+2. If no products were found, suggest alternatives.
+3. CRITICAL: You MUST append the following block to the VERY END of your response (hidden from user, used for rendering):
+:::products ${productsJson} :::
+`;
+
+  console.log('Sending messages to model:', JSON.stringify(normalizedMessages, null, 2));
+
+  return streamText({
     model: openai.chat(process.env.AI_MODEL_NAME || 'deepseek-ai/DeepSeek-V3'),
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     messages: normalizedMessages,
-    tools: {
-      searchProducts: searchProductsWithFallback,
-    },
-    toolChoice: 'auto',
-  });
-
-  return result.toUIMessageStreamResponse();
+    temperature: 0,
+  }).toUIMessageStreamResponse();
 }
