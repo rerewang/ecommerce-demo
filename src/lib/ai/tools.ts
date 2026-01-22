@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { tool } from 'ai';
+import { createClient } from '@supabase/supabase-js';
 
 const ProductSchema = z.object({
   id: z.string(),
@@ -12,6 +13,13 @@ const ProductSchema = z.object({
 
 // Use ProductSchema to validate return type if needed, effectively 'using' it
 export const productSchema = ProductSchema;
+
+// Create a server-side Supabase client with admin privileges if needed, 
+// or standard client. For public read, standard is fine.
+// But we need the URL and Key.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -29,36 +37,26 @@ export const searchProducts = tool({
     
     console.log('Searching products:', { query, category, maxPrice });
     
-    // Construct Supabase query dynamically
-    // const supabase = createClient(); 
-    // let dbQuery = supabase.from('products').select('*');
+    let dbQuery = supabase.from('products').select('*');
     
-    // if (query) dbQuery = dbQuery.ilike('name', `%${query}%`);
-    // if (category) dbQuery = dbQuery.eq('category', category);
-    // if (maxPrice) dbQuery = dbQuery.lte('price', maxPrice);
+    if (query) {
+      // Simple keyword search on name or description
+      dbQuery = dbQuery.or(`name.ilike.%${query}%,description.ilike.%${query}%`);
+    }
+    if (category) {
+      dbQuery = dbQuery.ilike('category', `%${category}%`);
+    }
+    if (maxPrice) {
+      dbQuery = dbQuery.lte('price', maxPrice);
+    }
     
-    // const { data, error } = await dbQuery.limit(5);
-    // if (error) throw error;
-    // return data;
-
-    // Returning mock data until we hook up the actual DB client in this context
-    return [
-      {
-        id: '1',
-        name: 'Royal General Portrait',
-        description: 'Your pet as a dignified 19th century general.',
-        price: 149,
-        category: 'Oil',
-        image_url: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?w=800&q=80',
-      },
-      {
-        id: '2',
-        name: 'Renaissance Lady',
-        description: 'Elegant renaissance style portrait.',
-        price: 159,
-        category: 'Oil',
-        image_url: 'https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800&q=80',
-      },
-    ];
+    const { data, error } = await dbQuery.limit(5);
+    
+    if (error) {
+      console.error('Supabase search error:', error);
+      return [];
+    }
+    
+    return data || [];
   },
 });
