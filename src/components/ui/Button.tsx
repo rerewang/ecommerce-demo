@@ -14,26 +14,27 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         disabled={disabled}
         className={cn(
           // Base styles
-          'inline-flex items-center justify-center font-medium transition-all duration-200',
+          'inline-flex items-center justify-center font-semibold transition-all duration-200',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
           'disabled:opacity-50 disabled:cursor-not-allowed',
-          // Soft UI Evolution shadows
-          'shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)]',
-          'active:shadow-[0_1px_4px_rgba(0,0,0,0.06)] active:scale-[0.98]',
+          // Design System: Exaggerated Minimalism with clear CTA
+          'shadow-sm hover:shadow-md active:scale-[0.98]',
           
-          // Variants
+          // Variants from Design System
           {
-            'bg-primary text-white hover:bg-primary/90 shadow-sm hover:shadow-md transition-all duration-300': variant === 'primary',
-            'bg-white/80 text-secondary hover:bg-white border border-stone-200 shadow-sm backdrop-blur-sm': variant === 'secondary',
+            // Primary: Orange (#F97316)
+            'bg-cta text-white hover:bg-cta/90 shadow-md hover:shadow-lg': variant === 'primary',
+            // Secondary: Transparent with Blue Border (#3B82F6)
+            'bg-transparent text-primary border-2 border-primary hover:bg-primary/5': variant === 'secondary',
             'border-2 border-primary text-primary hover:bg-primary/5': variant === 'outline',
-            'hover:bg-stone-100 text-stone-600 hover:text-stone-900 shadow-none': variant === 'ghost',
+            'hover:bg-muted text-muted-foreground hover:text-foreground shadow-none': variant === 'ghost',
           },
           
           // Sizes
           {
-            'text-sm px-3 py-1.5 rounded-full': size === 'sm',
-            'text-base px-4 py-2 rounded-full': size === 'md',
-            'text-lg px-6 py-3 rounded-full': size === 'lg',
+            'text-sm px-3 py-1.5 rounded-lg': size === 'sm',
+            'text-base px-6 py-3 rounded-xl': size === 'md',
+            'text-lg px-8 py-4 rounded-2xl': size === 'lg',
           },
           
           className
