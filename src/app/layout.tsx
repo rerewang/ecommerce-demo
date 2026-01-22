@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Rubik, Nunito_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
+import { ChatWidget } from "@/components/ai/ChatWidget";
 
 const rubik = Rubik({
   subsets: ["latin"],
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="zh-CN">
       <body className={`${rubik.variable} ${nunitoSans.variable} font-sans antialiased bg-background text-foreground`}>
         {children}
+        <ChatWidget />
         <Toaster position="top-right" />
       </body>
     </html>
