@@ -3,7 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { MessageCircle, X, Send, Bot, User as UserIcon, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User as UserIcon, Loader2, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
@@ -30,8 +30,25 @@ export function ChatWidget() {
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [lastSent, setLastSent] = useState('');
+  const [isOffline, setIsOffline] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const displayError = error ?? (typeof chatError === 'string' ? chatError : chatError?.message ?? null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    setIsOffline(!navigator.onLine);
+
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const isLoading = status === 'streaming' || status === 'submitted';
   const canStop = status === 'streaming';
@@ -76,6 +93,10 @@ export function ChatWidget() {
     e?.preventDefault();
     const safeInput = typeof input === 'string' ? input : '';
     if (!safeInput.trim()) return;
+    if (isOffline) {
+      setError('You are offline. Please check your connection.');
+      return;
+    }
     try {
       setError(null);
       setLastSent(safeInput);
@@ -92,6 +113,10 @@ export function ChatWidget() {
     const raw = lastSent || input;
     const text = typeof raw === 'string' ? raw : '';
     if (!text.trim()) return;
+    if (isOffline) {
+      setError('You are offline. Please check your connection.');
+      return;
+    }
     try {
       setError(null);
       await sendMessage({ text });
@@ -117,6 +142,20 @@ export function ChatWidget() {
     } catch (err) {
       console.error('regenerate error', err);
       setError('Regenerate failed.');
+    }
+  };
+
+  const handleClear = () => {
+    if (confirm('Are you sure you want to clear the conversation?')) {
+      setMessages([]);
+      setInput('');
+      setError(null);
+      setLastSent('');
+      try {
+        window.localStorage.removeItem('petpixel-chat-messages');
+      } catch (e) {
+        console.error('clear storage error', e);
+      }
     }
   };
 
@@ -147,17 +186,35 @@ export function ChatWidget() {
                 </div>
                 <div>
                   <h3 className="font-serif font-bold text-stone-900">PetPixel Art Curator</h3>
-                  <p className="text-xs text-stone-500">Premium AI Assistant</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs text-stone-500">Premium AI Assistant</p>
+                    {isOffline && (
+                      <span className="text-[10px] bg-stone-100 text-stone-500 px-1.5 py-0.5 rounded-full border border-stone-200">
+                        Offline
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 rounded-full hover:bg-stone-100"
-                onClick={() => setIsOpen(false)}
-              >
-                <X className="w-4 h-4 text-stone-500" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 rounded-full hover:bg-stone-100 text-stone-500 hover:text-red-500"
+                  onClick={handleClear}
+                  title="Clear chat"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 rounded-full hover:bg-stone-100"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <X className="w-4 h-4 text-stone-500" />
+                </Button>
+              </div>
             </div>
 
             {/* Chat Area */}
@@ -193,7 +250,7 @@ export function ChatWidget() {
               
               {messages.map((m: UIMessage & { content?: string; parts?: { type?: string; text?: string }[]; toolInvocations?: ToolInvocation[] }) => {
                 const parts = m.parts;
-                let content = typeof m.content === 'string'
+                const content = typeof m.content === 'string'
                   ? m.content
                   : parts
                       ?.filter((p) => p?.type === 'text' && typeof (p as { text?: string }).text === 'string')
@@ -202,15 +259,25 @@ export function ChatWidget() {
 
                 // Check for embedded products from server-side injection
                 let embeddedProducts: Product[] = [];
-                // Regex matches :::products [json] ::: across lines
-                const productsMatch = content.match(/:::products\s+(\[[\s\S]*?\])\s+:::/);
+                let displayContent = content;
+
+                // 1. Try to match complete block first (allow flexible whitespace)
+                const productsMatch = content.match(/:::products\s*(\[[\s\S]*?\])\s*:::/);
                 if (productsMatch) {
                   try {
                     embeddedProducts = JSON.parse(productsMatch[1]);
-                    content = content.replace(productsMatch[0], '').trim();
+                    displayContent = content.replace(productsMatch[0], '').trim();
                   } catch (e) {
                     console.error('Failed to parse embedded products', e);
                   }
+                } 
+                // 2. If no complete match, check for partial/streaming block
+                else if (content.includes(':::products')) {
+                   // Hide the partial block to prevent raw text flickering
+                   const parts = content.split(':::products');
+                   displayContent = parts[0].trim();
+                   // Optionally we could show a loading indicator here if needed, 
+                   // but keeping it clean is usually better for "magic" appearance.
                 }
 
                 const invocationsToRender = [...(m.toolInvocations || [])];
@@ -246,7 +313,7 @@ export function ChatWidget() {
                     ) : (
                       <div className="prose prose-sm max-w-none text-stone-800 prose-p:leading-relaxed prose-pre:bg-stone-100 prose-pre:p-2 prose-pre:rounded-lg break-words">
                         <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-                          {content}
+                          {displayContent}
                         </ReactMarkdown>
                       </div>
                     )}
@@ -256,7 +323,7 @@ export function ChatWidget() {
                       if (toolInvocation.toolName === 'searchProducts' && toolInvocation.result) {
                         const products = toolInvocation.result as Product[];
                         const hasProducts = !!products && products.length > 0;
-                        const showSummaryFallback = !content.trim() || !hasProducts;
+                        const showSummaryFallback = !displayContent.trim() || !hasProducts;
                         return (
                           <div key={toolInvocation.toolCallId} className="mt-3 flex flex-col gap-2">
                             {showSummaryFallback && (
@@ -331,7 +398,7 @@ export function ChatWidget() {
                   <Button 
                     type="button"
                     size="sm" 
-                    disabled={isLoading || !safeInputValue.trim()}
+                    disabled={isLoading || !safeInputValue.trim() || isOffline}
                     className="rounded-full w-10 h-10 p-0 flex items-center justify-center"
                     onClick={() => handleDebouncedSubmit()}
                   >
