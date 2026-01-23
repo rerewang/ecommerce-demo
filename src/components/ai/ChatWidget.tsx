@@ -3,7 +3,7 @@
 import { useChat } from '@ai-sdk/react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { MessageCircle, X, Send, Bot, User as UserIcon, Loader2, Trash2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User as UserIcon, Loader2, Trash2, Maximize2, Minimize2, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
@@ -26,6 +26,8 @@ type ToolInvocation = {
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const { messages, sendMessage, status, error: chatError, stop, regenerate, setMessages } = useChat();
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -159,6 +161,16 @@ export function ChatWidget() {
     }
   };
 
+  const handleCopy = async (id: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -173,10 +185,16 @@ export function ChatWidget() {
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              y: 0,
+              width: isExpanded ? '800px' : '350px',
+              height: isExpanded ? '80vh' : '500px',
+            }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="mb-4 w-[350px] sm:w-[400px] h-[500px] pointer-events-auto shadow-xl rounded-2xl overflow-hidden bg-white border border-stone-200 flex flex-col"
+            className={`mb-4 pointer-events-auto shadow-xl rounded-2xl overflow-hidden bg-white border border-stone-200 flex flex-col ${isExpanded ? 'max-w-[calc(100vw-48px)]' : 'sm:w-[400px]'}`}
           >
             {/* Header */}
             <div className="bg-white p-4 border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
@@ -197,6 +215,15 @@ export function ChatWidget() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 rounded-full hover:bg-stone-100 text-stone-500"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  title={isExpanded ? "Minimize" : "Maximize"}
+                >
+                  {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -292,7 +319,7 @@ export function ChatWidget() {
                 return (
                 <div
                   key={m.id}
-                  className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                  className={`flex gap-3 group ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   <div className={`
                     w-8 h-8 rounded-full flex items-center justify-center shrink-0
@@ -302,12 +329,24 @@ export function ChatWidget() {
                   </div>
                   
                   <div className={`
-                    max-w-[80%] rounded-2xl px-4 py-3 text-sm overflow-hidden
+                    max-w-[80%] rounded-2xl px-4 py-3 text-sm overflow-hidden relative
                     ${m.role === 'user' 
                       ? 'bg-stone-900 text-white rounded-tr-sm' 
                       : 'bg-white border border-stone-200 text-stone-800 rounded-tl-sm shadow-sm'
                     }
                  `}>
+                    {m.role === 'assistant' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`absolute top-1 right-1 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${copiedId === m.id ? 'opacity-100 text-green-500' : 'text-stone-400 hover:text-stone-600'}`}
+                        onClick={() => handleCopy(m.id, displayContent)}
+                        title="Copy message"
+                      >
+                        {copiedId === m.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      </Button>
+                    )}
+
                     {m.role === 'user' ? (
                       <div className="whitespace-pre-wrap break-words">{content}</div>
                     ) : (
@@ -336,7 +375,16 @@ export function ChatWidget() {
                             {hasProducts && products.map((product) => (
                               <div key={product.id} className="bg-stone-50 p-2 rounded-lg border border-stone-100 flex gap-3">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={product.image_url} alt={product.name} className="w-12 h-12 object-cover rounded-md bg-stone-200" />
+                                <img 
+                                  src={product.image_url || '/placeholder-image.jpg'} 
+                                  alt={product.name} 
+                                  className="w-12 h-12 object-cover rounded-md bg-stone-200"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.onerror = null;
+                                    target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23d6d3d1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
+                                  }}
+                                />
                                 <div className="flex-1 min-w-0">
                                   <div className="font-medium text-xs truncate">{product.name}</div>
                                   <div className="text-primary font-bold text-xs">${product.price}</div>
@@ -399,10 +447,14 @@ export function ChatWidget() {
                     type="button"
                     size="sm" 
                     disabled={isLoading || !safeInputValue.trim() || isOffline}
-                    className="rounded-full w-10 h-10 p-0 flex items-center justify-center"
+                    className={`rounded-full w-10 h-10 p-0 flex items-center justify-center transition-all duration-200
+                      ${(isLoading || !safeInputValue.trim() || isOffline) 
+                        ? 'bg-stone-100 text-stone-300 cursor-not-allowed border border-stone-200 shadow-none' 
+                        : 'bg-stone-900 text-white shadow-md hover:bg-stone-800 hover:shadow-lg'
+                      }`}
                     onClick={() => handleDebouncedSubmit()}
                   >
-                    <Send className="w-4 h-4" />
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </div>
               </form>
