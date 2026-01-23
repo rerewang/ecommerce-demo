@@ -178,6 +178,20 @@ describe('ChatWidget Markdown & Safety', () => {
         role: 'assistant',
         content: 'Found items. :::products [{"id":"p1","name":"Test Art","price":99,"image_url":"/img.jpg"}] ::: Summary text.',
         parts: [{ type: 'text', text: 'Found items. :::products [{"id":"p1","name":"Test Art","price":99,"image_url":"/img.jpg"}] ::: Summary text.' }],
+        toolInvocations: [
+          {
+            toolName: 'searchProducts',
+            toolCallId: 'test-call',
+            result: [
+              {
+                id: 'p1',
+                name: 'Test Art',
+                price: 99,
+                image_url: '/img.jpg',
+              },
+            ],
+          },
+        ],
       },
     ] as unknown as UIMessage[];
 

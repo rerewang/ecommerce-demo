@@ -3,12 +3,16 @@
 import { useChat } from '@ai-sdk/react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { MessageCircle, X, Send, Bot, User as UserIcon, Loader2, Trash2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User as UserIcon, Loader2, Trash2, Maximize2, Minimize2, Copy, Check, Package, ChevronRight, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import type { UIMessage } from 'ai';
 import { useDebouncedCallback } from 'use-debounce';
+
+import { OrderCard } from './cards/OrderCard';
+import { ReturnCard } from './cards/ReturnCard';
+import { AlertCard } from './cards/AlertCard';
 
 type Product = {
   id: string;
@@ -21,11 +25,13 @@ type Product = {
 type ToolInvocation = {
   toolName?: string;
   toolCallId?: string;
-  result?: Product[];
+  result?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 export function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const { messages, sendMessage, status, error: chatError, stop, regenerate, setMessages } = useChat();
   const [input, setInput] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -159,6 +165,16 @@ export function ChatWidget() {
     }
   };
 
+  const handleCopy = async (id: string, text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -173,10 +189,16 @@ export function ChatWidget() {
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
+            animate={{ 
+              opacity: 1, 
+              scale: 1, 
+              y: 0,
+              width: isExpanded ? '800px' : '350px',
+              height: isExpanded ? '80vh' : '500px',
+            }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.2 }}
-            className="mb-4 w-[350px] sm:w-[400px] h-[500px] pointer-events-auto shadow-xl rounded-2xl overflow-hidden bg-white border border-stone-200 flex flex-col"
+            className={`mb-4 pointer-events-auto shadow-xl rounded-2xl overflow-hidden bg-white border border-stone-200 flex flex-col ${isExpanded ? 'max-w-[calc(100vw-48px)]' : 'sm:w-[400px]'}`}
           >
             {/* Header */}
             <div className="bg-white p-4 border-b border-stone-100 flex items-center justify-between sticky top-0 z-10">
@@ -197,6 +219,15 @@ export function ChatWidget() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 rounded-full hover:bg-stone-100 text-stone-500"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  title={isExpanded ? "Minimize" : "Maximize"}
+                >
+                  {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </Button>
                 <Button 
                   variant="ghost" 
                   size="sm" 
@@ -248,20 +279,20 @@ export function ChatWidget() {
                 </div>
               )}
               
-              {messages.map((m: UIMessage & { content?: string; parts?: { type?: string; text?: string }[]; toolInvocations?: ToolInvocation[] }) => {
-                const parts = m.parts;
-                const content = typeof m.content === 'string'
-                  ? m.content
-                  : parts
-                      ?.filter((p) => p?.type === 'text' && typeof (p as { text?: string }).text === 'string')
-                      .map((p) => (p as { text?: string }).text || '')
-                      .join('') || '';
+              {messages.map((m: UIMessage & { content?: string; parts?: { type?: string; text?: string; toolName?: string; result?: unknown }[]; toolInvocations?: ToolInvocation[] }, idx) => {
+                const parts = Array.isArray(m.parts) ? m.parts : [];
+                const textParts = parts as Array<{ type?: string; text?: string }>;
+                const textFromParts = textParts
+                  .filter((p) => p?.type === 'text' && typeof p.text === 'string')
+                  .map((p) => p.text || '')
+                  .join('');
+                const fallbackContent = typeof m.content === 'string' ? m.content : '';
+                const content = textFromParts || fallbackContent;
 
-                // Check for embedded products from server-side injection
+                // Check for embedded products from server-side injection (legacy safeguard)
                 let embeddedProducts: Product[] = [];
                 let displayContent = content;
 
-                // 1. Try to match complete block first (allow flexible whitespace)
                 const productsMatch = content.match(/:::products\s*(\[[\s\S]*?\])\s*:::/);
                 if (productsMatch) {
                   try {
@@ -270,19 +301,56 @@ export function ChatWidget() {
                   } catch (e) {
                     console.error('Failed to parse embedded products', e);
                   }
-                } 
-                // 2. If no complete match, check for partial/streaming block
-                else if (content.includes(':::products')) {
-                   // Hide the partial block to prevent raw text flickering
-                   const parts = content.split(':::products');
-                   displayContent = parts[0].trim();
-                   // Optionally we could show a loading indicator here if needed, 
-                   // but keeping it clean is usually better for "magic" appearance.
+                } else if (content.includes(':::products')) {
+                  const chunks = content.split(':::products');
+                  displayContent = chunks[0].trim();
                 }
 
-                const invocationsToRender = [...(m.toolInvocations || [])];
+                type ToolResultPart = { type?: string; toolName?: string; toolCallId?: string; result?: unknown };
+                const toolResults: Array<{ toolName: string; toolCallId?: string; result: unknown }> = (parts as ToolResultPart[])
+                  .filter((p) => p?.type === 'tool-result' && typeof p.toolName === 'string')
+                  .map((p) => ({
+                    toolName: p.toolName as string,
+                    toolCallId: p.toolCallId,
+                    result: p.result,
+                  }));
+
+                // Handle provider-specific tool parts (e.g., type: "tool-searchProducts" with output)
+                const providerToolResults: Array<{ toolName: string; toolCallId?: string; result: unknown }> = parts
+                  .filter((p) => {
+                    const pt = p as { type?: string; state?: string; output?: unknown; result?: unknown };
+                    return (
+                      typeof pt.type === 'string' &&
+                      pt.type.startsWith('tool-') &&
+                      (pt.state === 'output-available' || pt.state === 'result') &&
+                      (pt.output !== undefined || pt.result !== undefined)
+                    );
+                  })
+                  .map((p) => {
+                    const typed = p as { type: string; toolCallId?: string; output?: unknown; result?: unknown };
+                    return {
+                      toolName: typed.type.replace(/^tool-/, '') || 'unknown',
+                      toolCallId: typed.toolCallId,
+                      result: typed.output ?? typed.result,
+                    };
+                  });
+
+                const invocationsToRender = [
+                  ...(m.toolInvocations || []),
+                  ...toolResults.map((tr) => ({
+                    toolName: tr.toolName,
+                    toolCallId: tr.toolCallId,
+                    result: tr.result,
+                  })),
+                  ...providerToolResults.map((tr) => ({
+                    toolName: tr.toolName,
+                    toolCallId: tr.toolCallId,
+                    result: tr.result,
+                  })),
+                ];
+
                 if (embeddedProducts.length > 0) {
-                  invocationsToRender.push({
+                  toolResults.push({
                     toolName: 'searchProducts',
                     toolCallId: `embedded-${m.id}`,
                     result: embeddedProducts,
@@ -291,8 +359,8 @@ export function ChatWidget() {
 
                 return (
                 <div
-                  key={m.id}
-                  className={`flex gap-3 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                  key={`${m.id}-${idx}`}
+                  className={`flex gap-3 group ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   <div className={`
                     w-8 h-8 rounded-full flex items-center justify-center shrink-0
@@ -302,12 +370,24 @@ export function ChatWidget() {
                   </div>
                   
                   <div className={`
-                    max-w-[80%] rounded-2xl px-4 py-3 text-sm overflow-hidden
+                    max-w-[80%] rounded-2xl px-4 py-3 text-sm overflow-hidden relative
                     ${m.role === 'user' 
                       ? 'bg-stone-900 text-white rounded-tr-sm' 
                       : 'bg-white border border-stone-200 text-stone-800 rounded-tl-sm shadow-sm'
                     }
                  `}>
+                    {m.role === 'assistant' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={`absolute top-1 right-1 h-6 w-6 p-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${copiedId === m.id ? 'opacity-100 text-green-500' : 'text-stone-400 hover:text-stone-600'}`}
+                        onClick={() => handleCopy(m.id, displayContent)}
+                        title="Copy message"
+                      >
+                        {copiedId === m.id ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                      </Button>
+                    )}
+
                     {m.role === 'user' ? (
                       <div className="whitespace-pre-wrap break-words">{content}</div>
                     ) : (
@@ -318,10 +398,10 @@ export function ChatWidget() {
                       </div>
                     )}
                     
-                    {/* Render tool invocations if any (simplified) */}
-                    {invocationsToRender.map((toolInvocation) => {
-                      if (toolInvocation.toolName === 'searchProducts' && toolInvocation.result) {
-                        const products = toolInvocation.result as Product[];
+                     {/* Render tool results if any (simplified) */}
+                     {invocationsToRender.map((toolInvocation) => {
+                       if (toolInvocation.toolName === 'searchProducts' && toolInvocation.result) {
+                         const products = toolInvocation.result as Product[];
                         const hasProducts = !!products && products.length > 0;
                         const showSummaryFallback = !displayContent.trim() || !hasProducts;
                         return (
@@ -336,7 +416,16 @@ export function ChatWidget() {
                             {hasProducts && products.map((product) => (
                               <div key={product.id} className="bg-stone-50 p-2 rounded-lg border border-stone-100 flex gap-3">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={product.image_url} alt={product.name} className="w-12 h-12 object-cover rounded-md bg-stone-200" />
+                                <img 
+                                  src={product.image_url || '/placeholder-image.jpg'} 
+                                  alt={product.name} 
+                                  className="w-12 h-12 object-cover rounded-md bg-stone-200"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.onerror = null;
+                                    target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 24 24' fill='none' stroke='%23d6d3d1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='3' width='18' height='18' rx='2' ry='2'%3E%3C/rect%3E%3Ccircle cx='8.5' cy='8.5' r='1.5'%3E%3C/circle%3E%3Cpolyline points='21 15 16 10 5 21'%3E%3C/polyline%3E%3C/svg%3E";
+                                  }}
+                                />
                                 <div className="flex-1 min-w-0">
                                   <div className="font-medium text-xs truncate">{product.name}</div>
                                   <div className="text-primary font-bold text-xs">${product.price}</div>
@@ -346,6 +435,109 @@ export function ChatWidget() {
                           </div>
                         );
                       }
+                      
+                      if (toolInvocation.toolName === 'trackOrder' && toolInvocation.result) {
+                        return (
+                          <div key={toolInvocation.toolCallId} className="mt-3">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            <OrderCard data={toolInvocation.result as any} />
+                          </div>
+                        );
+                      }
+
+                      if (toolInvocation.toolName === 'checkReturnEligibility' && toolInvocation.result) {
+                        return (
+                          <div key={toolInvocation.toolCallId} className="mt-3">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            <ReturnCard data={toolInvocation.result as any} />
+                          </div>
+                        );
+                      }
+
+                      if (toolInvocation.toolName === 'createAlert' && toolInvocation.result) {
+                        return (
+                          <div key={toolInvocation.toolCallId} className="mt-3">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            <AlertCard data={toolInvocation.result as any} />
+                          </div>
+                        );
+                      }
+
+                      if (toolInvocation.toolName === 'listUserOrders' && toolInvocation.result) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const { orders } = toolInvocation.result as { orders: any[] };
+                        const hasOrders = orders && orders.length > 0;
+
+                        if (!hasOrders) {
+                          return (
+                            <div key={toolInvocation.toolCallId} className="mt-3 text-xs text-stone-500 bg-stone-50 p-3 rounded-lg border border-stone-100 flex items-center gap-2">
+                              <ShoppingBag className="w-4 h-4 text-stone-400" />
+                              <span>No recent orders found.</span>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div key={toolInvocation.toolCallId} className="mt-3 flex flex-col gap-2">
+                            <div className="text-xs text-stone-500 mb-1">Select an order to view details:</div>
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {orders.map((order: any) => (
+                              <button
+                                key={order.orderId}
+                                onClick={() => sendMessage({ text: `Show details for order ${order.shortId}` })}
+                                className="flex flex-col text-left bg-white border border-stone-200 rounded-lg p-3 hover:border-primary/50 hover:shadow-sm transition-all group/order w-full"
+                              >
+                                <div className="flex justify-between items-start w-full mb-2">
+                                  <div className="flex items-center gap-2">
+                                     <div className="bg-stone-50 p-1.5 rounded-md border border-stone-100">
+                                       <Package className="w-3.5 h-3.5 text-stone-500" />
+                                     </div>
+                                     <div>
+                                       <div className="font-medium text-sm text-stone-900">Order #{order.shortId}</div>
+                                       <div className="text-[10px] text-stone-500">{new Date(order.createdAt).toLocaleDateString()}</div>
+                                     </div>
+                                  </div>
+                                  <div className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+                                    order.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-100' :
+                                    order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                                    order.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-100' :
+                                    'bg-stone-100 text-stone-600 border-stone-200'
+                                  }`}>
+                                    {order.status}
+                                  </div>
+                                </div>
+                                
+                                <div className="flex gap-2 pl-[38px] w-full">
+                                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                   {order.items?.slice(0, 3).map((item: any, i: number) => (
+                                     <div key={i} className="relative w-8 h-8 bg-stone-50 rounded border border-stone-100 overflow-hidden shrink-0" title={`${item.name} (x${item.quantity})`}>
+                                       {item.imageUrl ? (
+                                         // eslint-disable-next-line @next/next/no-img-element
+                                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                       ) : (
+                                         <div className="w-full h-full flex items-center justify-center text-[8px] text-stone-400">?</div>
+                                       )}
+                                       {item.quantity > 1 && (
+                                          <div className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-0.5 rounded-tl-sm leading-none">
+                                            {item.quantity}
+                                          </div>
+                                       )}
+                                     </div>
+                                   ))}
+                                </div>
+                                
+                                <div className="flex justify-between items-center w-full mt-2 pl-[38px]">
+                                  <span className="text-xs font-medium text-stone-900">${order.total?.toFixed(2)}</span>
+                                  <span className="text-[10px] text-primary opacity-0 group-hover/order:opacity-100 transition-opacity flex items-center gap-0.5 font-medium">
+                                    Track <ChevronRight className="w-3 h-3" />
+                                  </span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        );
+                      }
+
                       return null;
                     })}
                   </div>
@@ -399,10 +591,14 @@ export function ChatWidget() {
                     type="button"
                     size="sm" 
                     disabled={isLoading || !safeInputValue.trim() || isOffline}
-                    className="rounded-full w-10 h-10 p-0 flex items-center justify-center"
+                    className={`rounded-full w-10 h-10 p-0 flex items-center justify-center transition-all duration-200
+                      ${(isLoading || !safeInputValue.trim() || isOffline) 
+                        ? 'bg-stone-100 text-stone-300 cursor-not-allowed border border-stone-200 shadow-none' 
+                        : 'bg-stone-900 text-white shadow-md hover:bg-stone-800 hover:shadow-lg'
+                      }`}
                     onClick={() => handleDebouncedSubmit()}
                   >
-                    <Send className="w-4 h-4" />
+                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                   </Button>
                 </div>
               </form>
