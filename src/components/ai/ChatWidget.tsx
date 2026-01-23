@@ -3,12 +3,16 @@
 import { useChat } from '@ai-sdk/react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/Button';
-import { MessageCircle, X, Send, Bot, User as UserIcon, Loader2, Trash2, Maximize2, Minimize2, Copy, Check } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User as UserIcon, Loader2, Trash2, Maximize2, Minimize2, Copy, Check, Package, ChevronRight, ShoppingBag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import rehypeSanitize from 'rehype-sanitize';
 import type { UIMessage } from 'ai';
 import { useDebouncedCallback } from 'use-debounce';
+
+import { OrderCard } from './cards/OrderCard';
+import { ReturnCard } from './cards/ReturnCard';
+import { AlertCard } from './cards/AlertCard';
 
 type Product = {
   id: string;
@@ -21,7 +25,7 @@ type Product = {
 type ToolInvocation = {
   toolName?: string;
   toolCallId?: string;
-  result?: Product[];
+  result?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 export function ChatWidget() {
@@ -275,20 +279,20 @@ export function ChatWidget() {
                 </div>
               )}
               
-              {messages.map((m: UIMessage & { content?: string; parts?: { type?: string; text?: string }[]; toolInvocations?: ToolInvocation[] }) => {
-                const parts = m.parts;
-                const content = typeof m.content === 'string'
-                  ? m.content
-                  : parts
-                      ?.filter((p) => p?.type === 'text' && typeof (p as { text?: string }).text === 'string')
-                      .map((p) => (p as { text?: string }).text || '')
-                      .join('') || '';
+              {messages.map((m: UIMessage & { content?: string; parts?: { type?: string; text?: string; toolName?: string; result?: unknown }[]; toolInvocations?: ToolInvocation[] }, idx) => {
+                const parts = Array.isArray(m.parts) ? m.parts : [];
+                const textParts = parts as Array<{ type?: string; text?: string }>;
+                const textFromParts = textParts
+                  .filter((p) => p?.type === 'text' && typeof p.text === 'string')
+                  .map((p) => p.text || '')
+                  .join('');
+                const fallbackContent = typeof m.content === 'string' ? m.content : '';
+                const content = textFromParts || fallbackContent;
 
-                // Check for embedded products from server-side injection
+                // Check for embedded products from server-side injection (legacy safeguard)
                 let embeddedProducts: Product[] = [];
                 let displayContent = content;
 
-                // 1. Try to match complete block first (allow flexible whitespace)
                 const productsMatch = content.match(/:::products\s*(\[[\s\S]*?\])\s*:::/);
                 if (productsMatch) {
                   try {
@@ -297,19 +301,56 @@ export function ChatWidget() {
                   } catch (e) {
                     console.error('Failed to parse embedded products', e);
                   }
-                } 
-                // 2. If no complete match, check for partial/streaming block
-                else if (content.includes(':::products')) {
-                   // Hide the partial block to prevent raw text flickering
-                   const parts = content.split(':::products');
-                   displayContent = parts[0].trim();
-                   // Optionally we could show a loading indicator here if needed, 
-                   // but keeping it clean is usually better for "magic" appearance.
+                } else if (content.includes(':::products')) {
+                  const chunks = content.split(':::products');
+                  displayContent = chunks[0].trim();
                 }
 
-                const invocationsToRender = [...(m.toolInvocations || [])];
+                type ToolResultPart = { type?: string; toolName?: string; toolCallId?: string; result?: unknown };
+                const toolResults: Array<{ toolName: string; toolCallId?: string; result: unknown }> = (parts as ToolResultPart[])
+                  .filter((p) => p?.type === 'tool-result' && typeof p.toolName === 'string')
+                  .map((p) => ({
+                    toolName: p.toolName as string,
+                    toolCallId: p.toolCallId,
+                    result: p.result,
+                  }));
+
+                // Handle provider-specific tool parts (e.g., type: "tool-searchProducts" with output)
+                const providerToolResults: Array<{ toolName: string; toolCallId?: string; result: unknown }> = parts
+                  .filter((p) => {
+                    const pt = p as { type?: string; state?: string; output?: unknown; result?: unknown };
+                    return (
+                      typeof pt.type === 'string' &&
+                      pt.type.startsWith('tool-') &&
+                      (pt.state === 'output-available' || pt.state === 'result') &&
+                      (pt.output !== undefined || pt.result !== undefined)
+                    );
+                  })
+                  .map((p) => {
+                    const typed = p as { type: string; toolCallId?: string; output?: unknown; result?: unknown };
+                    return {
+                      toolName: typed.type.replace(/^tool-/, '') || 'unknown',
+                      toolCallId: typed.toolCallId,
+                      result: typed.output ?? typed.result,
+                    };
+                  });
+
+                const invocationsToRender = [
+                  ...(m.toolInvocations || []),
+                  ...toolResults.map((tr) => ({
+                    toolName: tr.toolName,
+                    toolCallId: tr.toolCallId,
+                    result: tr.result,
+                  })),
+                  ...providerToolResults.map((tr) => ({
+                    toolName: tr.toolName,
+                    toolCallId: tr.toolCallId,
+                    result: tr.result,
+                  })),
+                ];
+
                 if (embeddedProducts.length > 0) {
-                  invocationsToRender.push({
+                  toolResults.push({
                     toolName: 'searchProducts',
                     toolCallId: `embedded-${m.id}`,
                     result: embeddedProducts,
@@ -318,7 +359,7 @@ export function ChatWidget() {
 
                 return (
                 <div
-                  key={m.id}
+                  key={`${m.id}-${idx}`}
                   className={`flex gap-3 group ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
                 >
                   <div className={`
@@ -357,10 +398,10 @@ export function ChatWidget() {
                       </div>
                     )}
                     
-                    {/* Render tool invocations if any (simplified) */}
-                    {invocationsToRender.map((toolInvocation) => {
-                      if (toolInvocation.toolName === 'searchProducts' && toolInvocation.result) {
-                        const products = toolInvocation.result as Product[];
+                     {/* Render tool results if any (simplified) */}
+                     {invocationsToRender.map((toolInvocation) => {
+                       if (toolInvocation.toolName === 'searchProducts' && toolInvocation.result) {
+                         const products = toolInvocation.result as Product[];
                         const hasProducts = !!products && products.length > 0;
                         const showSummaryFallback = !displayContent.trim() || !hasProducts;
                         return (
@@ -394,6 +435,109 @@ export function ChatWidget() {
                           </div>
                         );
                       }
+                      
+                      if (toolInvocation.toolName === 'trackOrder' && toolInvocation.result) {
+                        return (
+                          <div key={toolInvocation.toolCallId} className="mt-3">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            <OrderCard data={toolInvocation.result as any} />
+                          </div>
+                        );
+                      }
+
+                      if (toolInvocation.toolName === 'checkReturnEligibility' && toolInvocation.result) {
+                        return (
+                          <div key={toolInvocation.toolCallId} className="mt-3">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            <ReturnCard data={toolInvocation.result as any} />
+                          </div>
+                        );
+                      }
+
+                      if (toolInvocation.toolName === 'createAlert' && toolInvocation.result) {
+                        return (
+                          <div key={toolInvocation.toolCallId} className="mt-3">
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            <AlertCard data={toolInvocation.result as any} />
+                          </div>
+                        );
+                      }
+
+                      if (toolInvocation.toolName === 'listUserOrders' && toolInvocation.result) {
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const { orders } = toolInvocation.result as { orders: any[] };
+                        const hasOrders = orders && orders.length > 0;
+
+                        if (!hasOrders) {
+                          return (
+                            <div key={toolInvocation.toolCallId} className="mt-3 text-xs text-stone-500 bg-stone-50 p-3 rounded-lg border border-stone-100 flex items-center gap-2">
+                              <ShoppingBag className="w-4 h-4 text-stone-400" />
+                              <span>No recent orders found.</span>
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <div key={toolInvocation.toolCallId} className="mt-3 flex flex-col gap-2">
+                            <div className="text-xs text-stone-500 mb-1">Select an order to view details:</div>
+                            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                            {orders.map((order: any) => (
+                              <button
+                                key={order.orderId}
+                                onClick={() => sendMessage({ text: `Show details for order ${order.shortId}` })}
+                                className="flex flex-col text-left bg-white border border-stone-200 rounded-lg p-3 hover:border-primary/50 hover:shadow-sm transition-all group/order w-full"
+                              >
+                                <div className="flex justify-between items-start w-full mb-2">
+                                  <div className="flex items-center gap-2">
+                                     <div className="bg-stone-50 p-1.5 rounded-md border border-stone-100">
+                                       <Package className="w-3.5 h-3.5 text-stone-500" />
+                                     </div>
+                                     <div>
+                                       <div className="font-medium text-sm text-stone-900">Order #{order.shortId}</div>
+                                       <div className="text-[10px] text-stone-500">{new Date(order.createdAt).toLocaleDateString()}</div>
+                                     </div>
+                                  </div>
+                                  <div className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${
+                                    order.status === 'delivered' ? 'bg-green-50 text-green-700 border-green-100' :
+                                    order.status === 'shipped' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                                    order.status === 'cancelled' ? 'bg-red-50 text-red-700 border-red-100' :
+                                    'bg-stone-100 text-stone-600 border-stone-200'
+                                  }`}>
+                                    {order.status}
+                                  </div>
+                                </div>
+                                
+                                <div className="flex gap-2 pl-[38px] w-full">
+                                   {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                                   {order.items?.slice(0, 3).map((item: any, i: number) => (
+                                     <div key={i} className="relative w-8 h-8 bg-stone-50 rounded border border-stone-100 overflow-hidden shrink-0" title={`${item.name} (x${item.quantity})`}>
+                                       {item.imageUrl ? (
+                                         // eslint-disable-next-line @next/next/no-img-element
+                                         <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                       ) : (
+                                         <div className="w-full h-full flex items-center justify-center text-[8px] text-stone-400">?</div>
+                                       )}
+                                       {item.quantity > 1 && (
+                                          <div className="absolute bottom-0 right-0 bg-stone-900/80 text-white text-[8px] px-0.5 rounded-tl-sm leading-none">
+                                            {item.quantity}
+                                          </div>
+                                       )}
+                                     </div>
+                                   ))}
+                                </div>
+                                
+                                <div className="flex justify-between items-center w-full mt-2 pl-[38px]">
+                                  <span className="text-xs font-medium text-stone-900">${order.total?.toFixed(2)}</span>
+                                  <span className="text-[10px] text-primary opacity-0 group-hover/order:opacity-100 transition-opacity flex items-center gap-0.5 font-medium">
+                                    Track <ChevronRight className="w-3 h-3" />
+                                  </span>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        );
+                      }
+
                       return null;
                     })}
                   </div>

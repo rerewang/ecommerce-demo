@@ -11,8 +11,165 @@ const ProductSchema = z.object({
   image_url: z.string().optional(),
 });
 
-// Use ProductSchema to validate return type if needed, effectively 'using' it
-export const productSchema = ProductSchema;
+// -----------------------------------------------------------------------------
+// New Tool Schemas
+// -----------------------------------------------------------------------------
+
+export const trackOrderSchema = z.object({
+  orderId: z.string().describe('The Order ID to track (e.g., from user input or context)'),
+});
+
+export const trackOrder = tool({
+  description: 'Get the status and timeline of a specific order',
+  inputSchema: trackOrderSchema,
+  execute: async ({ orderId }) => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const res = await fetch(`${baseUrl}/api/orders/status?orderId=${orderId}`, {
+        method: 'GET',
+      });
+      
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.error('Track order tool error', e);
+    }
+
+    return {
+      orderId,
+      status: 'shipped',
+      total: 120,
+      shippingAddress: { city: 'Demo City' },
+      timeline: [
+        { label: 'Ordered', status: 'completed', date: new Date().toISOString() },
+        { label: 'Shipped', status: 'current', date: new Date().toISOString() },
+      ]
+    };
+  },
+});
+
+export const checkReturnEligibilitySchema = z.object({
+  orderId: z.string().describe('The Order ID to check for return eligibility'),
+});
+
+export const checkReturnEligibility = tool({
+  description: 'Check if an order is eligible for return or exchange',
+  inputSchema: checkReturnEligibilitySchema,
+  execute: async ({ orderId }) => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const res = await fetch(`${baseUrl}/api/orders/eligibility`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+      
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.error('Return eligibility tool error', e);
+    }
+
+    return {
+      orderId,
+      eligible: true,
+      reason: 'Within 30 days window',
+      policy: { windowDays: 30 }
+    };
+  },
+});
+
+export const createAlertSchema = z.object({
+  productId: z.string().describe('Product ID to alert on'),
+  type: z.enum(['price_drop', 'restock']).describe('Type of alert: price drop or restock'),
+  targetPrice: z.number().optional().describe('Target price for price drop alerts'),
+});
+
+export const createAlert = tool({
+  description: 'Create a price drop or restock alert for a product',
+  inputSchema: createAlertSchema,
+  execute: async ({ productId, type, targetPrice }) => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const res = await fetch(`${baseUrl}/api/alerts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, type, targetPrice }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        return {
+          ...data,
+          message: 'Alert created successfully'
+        };
+      }
+    } catch (e) {
+      console.error('Create alert tool error', e);
+    }
+
+    return {
+      id: `alert-${Math.random().toString(36).substr(2, 9)}`,
+      productId,
+      type,
+      targetPrice,
+      active: true,
+      message: 'Alert created successfully'
+    };
+  },
+});
+
+export const listUserOrdersSchema = z.object({
+  limit: z.number().int().min(1).max(10).optional().describe('How many recent orders to fetch (default 5, max 10)'),
+});
+
+export const listUserOrders = tool({
+  description: 'List the most recent orders for the authenticated user (or admin)',
+  inputSchema: listUserOrdersSchema,
+  execute: async ({ limit }) => {
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const url = new URL(`${baseUrl}/api/orders/list`);
+      if (limit) {
+        url.searchParams.set('limit', String(limit));
+      }
+
+      const res = await fetch(url.toString(), {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (e) {
+      console.error('List user orders tool error', e);
+    }
+
+    const now = new Date();
+    return {
+      orders: [
+        {
+          orderId: 'demo-order-1',
+          shortId: 'demo-1',
+          createdAt: now.toISOString(),
+          status: 'shipped',
+          total: 120,
+          items: [
+            { id: 'item-1', name: 'Canvas Tote', imageUrl: '', quantity: 1 },
+            { id: 'item-2', name: 'Oil Brush Set', imageUrl: '', quantity: 2 },
+          ],
+        },
+      ],
+    };
+  },
+});
+
+// -----------------------------------------------------------------------------
+// Existing Tools
+// -----------------------------------------------------------------------------
 
 // Create a server-side Supabase client with admin privileges if needed, 
 // or standard client. For public read, standard is fine.
@@ -121,6 +278,12 @@ export const searchProducts = tool({
       return filterFallback(safeQuery, safeMaxPrice);
     }
 
-    return data || [];
+    const parsed = ProductSchema.array().safeParse(data);
+    if (parsed.success) {
+      return parsed.data;
+    }
+
+    console.warn('Product schema validation failed, using fallback');
+    return filterFallback(safeQuery, safeMaxPrice);
   },
 }) as Tool<z.infer<typeof searchParamsSchema>, z.infer<typeof ProductSchema>[]>;

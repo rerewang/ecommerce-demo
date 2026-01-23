@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { POST } from './route';
+import { SYSTEM_PROMPT } from '@/lib/ai/prompts';
 
 vi.mock('@/lib/ai/openai', () => ({
   openai: {
-    chat: vi.fn(),
+    chat: vi.fn(() => 'mock-model'),
   },
 }));
 
@@ -13,29 +13,55 @@ vi.mock('@/lib/ai/tools', () => ({
     parameters: {},
     execute: vi.fn(),
   },
+  trackOrder: {
+    description: 'mock track',
+    parameters: {},
+    execute: vi.fn(),
+  },
+  checkReturnEligibility: {
+    description: 'mock return',
+    parameters: {},
+    execute: vi.fn(),
+  },
+  createAlert: {
+    description: 'mock alert',
+    parameters: {},
+    execute: vi.fn(),
+  },
+  listUserOrders: {
+    description: 'mock list orders',
+    parameters: {},
+    execute: vi.fn(),
+  },
 }));
+
+let capturedAgentOptions: unknown;
 
 vi.mock('ai', async () => {
   const actual = await vi.importActual('ai');
+  const createResponse = vi.fn(() => new Response('mock-stream'));
+  class ToolLoopAgentMock {
+    stream = vi.fn();
+    constructor(options: { instructions?: string }) {
+      capturedAgentOptions = options;
+    }
+  }
   return {
     ...actual,
-    streamText: vi.fn(),
+    ToolLoopAgent: ToolLoopAgentMock,
+    createAgentUIStreamResponse: createResponse,
   };
 });
 
-describe('POST /api/chat tool calling', () => {
-  let mockStreamText: ReturnType<typeof vi.fn>;
+import { POST } from './route';
 
-  beforeEach(async () => {
+describe('POST /api/chat tool calling', () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-    const ai = await import('ai');
-    mockStreamText = vi.mocked(ai.streamText);
-    mockStreamText.mockReturnValue({
-      toUIMessageStreamResponse: () => new Response('mock-stream'),
-    });
+    capturedAgentOptions = undefined;
   });
 
-  it('should inject search results into system prompt (products block present)', async () => {
+  it('should keep system prompt clean without server-side product injection', async () => {
     const req = new Request('http://localhost:3000/api/chat', {
       method: 'POST',
       body: JSON.stringify({
@@ -45,7 +71,10 @@ describe('POST /api/chat tool calling', () => {
 
     await POST(req);
 
-    const args = mockStreamText.mock.calls[0][0];
-    expect(args.system).toContain(':::products');
+    const opts = capturedAgentOptions as { instructions?: string };
+    expect(opts).toBeTruthy();
+    expect(opts.instructions).toBeDefined();
+    expect(String(opts.instructions)).not.toContain(':::products');
+    expect(String(opts.instructions).trim()).toBe(SYSTEM_PROMPT.trim());
   });
 });
