@@ -11,14 +11,19 @@ describe('checkAlertsForProduct', () => {
     vi.clearAllMocks()
   })
 
-  // Helper to setup mock chain
-  const setupMockAlerts = (alerts: any[]) => {
-    const builder: any = {}
-    builder.select = vi.fn(() => builder)
-    builder.eq = vi.fn(() => builder)
-    builder.update = vi.fn(() => builder)
-    builder.in = vi.fn(() => builder)
-    builder.then = (resolve: any) => Promise.resolve({ data: alerts, error: null }).then(resolve)
+  const setupMockAlerts = <T,>(alerts: T[]) => {
+    const builder = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      update: vi.fn(),
+      in: vi.fn(),
+      then: (resolve: (value: { data: T[]; error: null }) => unknown) =>
+        Promise.resolve({ data: alerts, error: null }).then(resolve)
+    }
+    builder.select.mockReturnValue(builder)
+    builder.eq.mockReturnValue(builder)
+    builder.update.mockReturnValue(builder)
+    builder.in.mockReturnValue(builder)
     
     mockSupabase.from.mockImplementation((table) => {
       if (table === 'product_alerts') return builder
@@ -47,7 +52,7 @@ describe('checkAlertsForProduct', () => {
     })
 
     // Act
-    // @ts-ignore
+    // @ts-expect-error mock client is loosely typed
     await checkAlertsForProduct('prod-1', 90, 10, mockSupabase, 'price_drop')
 
     // Assert
@@ -73,7 +78,7 @@ describe('checkAlertsForProduct', () => {
     })
 
     // Act
-    // @ts-ignore
+    // @ts-expect-error mock client is loosely typed
     await checkAlertsForProduct('prod-1', 90, 10, mockSupabase, 'price_drop')
 
     // Assert
@@ -88,24 +93,28 @@ describe('checkAlertsForProduct', () => {
       status: 'active'
     }]
 
-    const builder: any = {}
-    builder.select = vi.fn(() => builder)
-    builder.update = vi.fn(() => builder)
-    builder.in = vi.fn(() => builder)
+    const builder = {
+      select: vi.fn(),
+      update: vi.fn(),
+      in: vi.fn(),
+      eq: vi.fn(),
+      then: (resolve: (value: { data: typeof alerts; error: null }) => unknown) => {
+        let result = alerts
+        if (filters.type && filters.type !== 'restock') {
+          result = []
+        }
+        return Promise.resolve({ data: result, error: null }).then(resolve)
+      }
+    }
+    builder.select.mockReturnValue(builder)
+    builder.update.mockReturnValue(builder)
+    builder.in.mockReturnValue(builder)
     
-    const filters: Record<string, any> = {}
+    const filters: Record<string, unknown> = {}
     builder.eq = vi.fn((col, val) => {
         filters[col] = val
         return builder
     })
-    
-    builder.then = (resolve: any) => {
-        let result = alerts
-        if (filters['type'] && filters['type'] !== 'restock') {
-            result = []
-        }
-        return Promise.resolve({ data: result, error: null }).then(resolve)
-    }
 
     const insertNotificationMock = vi.fn().mockResolvedValue({ error: null })
     mockSupabase.from.mockImplementation((table) => {
@@ -114,7 +123,7 @@ describe('checkAlertsForProduct', () => {
       return {}
     })
 
-    // @ts-ignore
+    // @ts-expect-error mock client is loosely typed
     await checkAlertsForProduct('prod-1', 90, 10, mockSupabase, 'price_drop')
 
     expect(builder.eq).toHaveBeenCalledWith('type', 'price_drop')

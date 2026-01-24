@@ -31,8 +31,9 @@ export async function POST(req: Request) {
     const returnRequest = await createReturnRequest(orderId, user.id, reason, supabase)
 
     return NextResponse.json(returnRequest)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
     console.error('POST /api/returns/create error', error)
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -19,14 +19,7 @@ interface OrderDetailProps {
 
 
 function FormattedDate({ date }: { date: string }) {
-  const [formatted, setFormatted] = useState<string>('')
-
-  useEffect(() => {
-    setFormatted(new Date(date).toLocaleString())
-  }, [date])
-
-  if (!formatted) return <span>Loading...</span>
-
+  const formatted = useMemo(() => new Date(date).toLocaleString(), [date])
   return <span>{formatted}</span>
 }
 

@@ -22,7 +22,7 @@ describe('Returns Service', () => {
   })
 
   test('checkReturnEligibility returns eligible for recent shipped order', async () => {
-    // @ts-ignore
+    // @ts-expect-error mock getOrderById typing loosened in test
     vi.mocked(getOrderById).mockResolvedValue(mockOrder)
 
     // Mock returns check (empty)
@@ -36,7 +36,7 @@ describe('Returns Service', () => {
       }))
     }
 
-    // @ts-ignore
+    // @ts-expect-error mock client is loosely typed
     const result = await checkReturnEligibility('order-1', 'user-1', mockClient)
     
     expect(result.eligible).toBe(true)
@@ -54,7 +54,7 @@ describe('Returns Service', () => {
       }))
     }
 
-    // @ts-ignore
+    // @ts-expect-error mock client is loosely typed
     const result = await checkReturnEligibility('order-1', 'user-1', mockClient)
     
     expect(result.eligible).toBe(false)

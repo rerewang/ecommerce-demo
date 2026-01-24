@@ -5,7 +5,6 @@ import { Bell, Check } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { createClientComponentClient } from '@/lib/supabase'
 import { Notification } from '@/services/notifications'
-import Link from 'next/link'
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,10 +14,22 @@ export function NotificationBell() {
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    // 1. Initial fetch
-    fetchNotifications()
+    let active = true
+    const fetchNotifications = async () => {
+      try {
+        const res = await fetch('/api/notifications')
+        if (res.ok && active) {
+          const data: Notification[] = await res.json()
+          setNotifications(data)
+          setUnreadCount(data.filter((n) => !n.read).length)
+        }
+      } catch (e) {
+        console.error('Failed to fetch notifications', e)
+      }
+    }
 
-    // 2. Realtime subscription
+    void fetchNotifications()
+
     const channel = supabase
       .channel('notifications')
       .on(
@@ -28,16 +39,16 @@ export function NotificationBell() {
           schema: 'public',
           table: 'notifications',
         },
-        (payload: { new: any }) => {
-          // Add new notification to list
-          const newNotification = payload.new as Notification
-          setNotifications(prev => [newNotification, ...prev])
-          setUnreadCount(prev => prev + 1)
+        (payload: { new: Notification }) => {
+          const newNotification = payload.new
+          setNotifications((prev) => [newNotification, ...prev])
+          setUnreadCount((prev) => prev + 1)
         }
       )
       .subscribe()
 
     return () => {
+      active = false
       supabase.removeChannel(channel)
     }
   }, [supabase])
@@ -52,19 +63,6 @@ export function NotificationBell() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const fetchNotifications = async () => {
-    try {
-      const res = await fetch('/api/notifications')
-      if (res.ok) {
-        const data = await res.json()
-        setNotifications(data)
-        setUnreadCount(data.filter((n: Notification) => !n.read).length)
-      }
-    } catch (e) {
-      console.error('Failed to fetch notifications', e)
-    }
-  }
 
   const markAsRead = async (id: string) => {
     // Optimistic update

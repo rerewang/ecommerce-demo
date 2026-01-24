@@ -9,8 +9,7 @@ const CreateAlertSchema = z.object({
   targetPrice: z.number().optional(),
 })
 
-export async function GET(req: Request) {
-  void req
+export async function GET() {
   try {
     const supabase = await createServerClient()
     const {
@@ -23,9 +22,10 @@ export async function GET(req: Request) {
 
     const alerts = await getUserAlerts(user.id, supabase)
     return NextResponse.json(alerts)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
     console.error('GET /api/alerts error', error)
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -52,9 +52,10 @@ export async function POST(req: Request) {
     const newAlert = await createAlert(user.id, productId, type, targetPrice, supabase)
 
     return NextResponse.json(newAlert)
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
     console.error('POST /api/alerts error', error)
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -85,8 +86,9 @@ export async function DELETE(req: Request) {
     if (error) throw error
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
     console.error('DELETE /api/alerts error', error)
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

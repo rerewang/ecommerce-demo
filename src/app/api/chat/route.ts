@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { openai } from '@/lib/ai/openai';
-import { ToolLoopAgent, createAgentUIStreamResponse, stepCountIs, type UIMessage } from 'ai';
+import { ToolLoopAgent, createAgentUIStreamResponse, stepCountIs, type UIMessage, type ToolExecutionOptions } from 'ai';
 import { SYSTEM_PROMPT } from '@/lib/ai/prompts';
 import { createServerClient } from '@/lib/supabase-server';
 import {
@@ -65,46 +65,15 @@ export async function POST(req: Request) {
     user: user ? { id: user.id, role } : null
   };
 
-  const agent = new ToolLoopAgent({
-    model: openai.chat(process.env.AI_MODEL_NAME || 'deepseek-ai/DeepSeek-V3'),
-    instructions: SYSTEM_PROMPT,
-    temperature: 0,
-    toolChoice: 'auto',
-    stopWhen: stepCountIs(5),
-    tools: {
-      searchProducts,
-      trackOrder,
-      checkReturnEligibility,
-      createReturnTicket,
-      createAlert,
-      listUserOrders,
-    },
-    // Inject context into all tool executions
-    // @ts-ignore - The AI SDK types might not strictly support this, but it works at runtime or via custom adapter logic if we were using it.
-    // WAIT: ToolLoopAgent from 'ai' package doesn't support 'context' property directly in constructor for tool execution.
-    // We need to check how Vercel AI SDK handles context injection.
-    // Actually, the `tools` definitions are static.
-    // The `execute` function receives `options`. We need to pass context there.
-    // But `ToolLoopAgent` doesn't seem to expose a way to pass per-request context to tools easily.
-    
-    // CORRECT APPROACH: 
-    // We need to wrap the tools to inject context, OR use the `experimental_tool` with context if available.
-    // However, since we defined tools using `tool()`, we can't easily curry them here without losing type inference?
-    // Actually, we can just mutate the options object if we had access to the runner...
-    
-    // Let's use a wrapper function for tools or rebuild the agent options.
-  });
+  type ContextToolOptions = ToolExecutionOptions & { context?: typeof toolContext };
 
-  // WORKAROUND: Since we can't pass context directly to ToolLoopAgent constructor to be forwarded to tools (it's not in the standard API),
-  // We need to re-bind the tools with context.
-  
   const toolsWithContext = {
     searchProducts, // Doesn't need context
-    trackOrder: { ...trackOrder, execute: (args: any, options: any) => trackOrder.execute!(args, { ...options, context: toolContext }) },
-    checkReturnEligibility: { ...checkReturnEligibility, execute: (args: any, options: any) => checkReturnEligibility.execute!(args, { ...options, context: toolContext }) },
-    createReturnTicket: { ...createReturnTicket, execute: (args: any, options: any) => createReturnTicket.execute!(args, { ...options, context: toolContext }) },
-    createAlert: { ...createAlert, execute: (args: any, options: any) => createAlert.execute!(args, { ...options, context: toolContext }) },
-    listUserOrders: { ...listUserOrders, execute: (args: any, options: any) => listUserOrders.execute!(args, { ...options, context: toolContext }) },
+    trackOrder: { ...trackOrder, execute: (args: unknown, options: ContextToolOptions) => trackOrder.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+    checkReturnEligibility: { ...checkReturnEligibility, execute: (args: unknown, options: ContextToolOptions) => checkReturnEligibility.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+    createReturnTicket: { ...createReturnTicket, execute: (args: unknown, options: ContextToolOptions) => createReturnTicket.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+    createAlert: { ...createAlert, execute: (args: unknown, options: ContextToolOptions) => createAlert.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+    listUserOrders: { ...listUserOrders, execute: (args: unknown, options: ContextToolOptions) => listUserOrders.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
   };
 
   // Re-create agent with bound tools

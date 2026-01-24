@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { tool, type Tool, type ToolExecutionOptions } from 'ai';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { getOrderById, getOrders, getUserOrders } from '@/services/orders';
+import { getOrderById, getUserOrders } from '@/services/orders';
 import { checkReturnEligibility as checkEligibilityService, createReturnRequest } from '@/services/returns';
 import { createAlert as createAlertService } from '@/services/alerts';
 import { Order, OrderItemView } from '@/types/order';
@@ -110,12 +110,13 @@ export const checkReturnEligibility = tool({
         policy: { windowDays: 30 },
         daysSincePurchase: result.daysSincePurchase
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Could not verify eligibility (System Error)';
       console.error('Return eligibility tool error', e);
       return { 
         orderId,
         eligible: false,
-        reason: e.message || 'Could not verify eligibility (System Error)',
+        reason: message,
         policy: { windowDays: 30 }
       };
     }
@@ -143,9 +144,10 @@ export const createReturnTicket = tool({
          ...returnRequest,
          message: 'Return ticket created successfully. Support will review it shortly.'
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Failed to create return ticket';
       console.error('Create return ticket tool error', e);
-      return { error: e.message || 'Failed to create return ticket' };
+      return { error: message };
     }
   },
 });
@@ -172,9 +174,10 @@ export const createAlert = tool({
         ...newAlert,
         message: 'Alert created successfully'
       };
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'System error while creating alert';
       console.error('Create alert tool error', e);
-      return { error: e.message || 'System error while creating alert' };
+      return { error: message };
     }
   },
 });
@@ -237,36 +240,6 @@ export const listUserOrders = tool({
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
-
-const fallbackProducts = [
-  {
-    id: 'sample-oil-1',
-    name: 'Calm Shores Oil Painting',
-    description: 'Serene coastal landscape in warm tones for pet portraits.',
-    price: 89,
-    image_url: 'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=400',
-    category: 'Oil Painting',
-    stock: 12,
-  },
-  {
-    id: 'sample-oil-2',
-    name: 'Sunset Fields Canvas',
-    description: 'Golden-hour meadow oil piece; great for animals in motion.',
-    price: 95,
-    image_url: 'https://images.unsplash.com/photo-1473181488821-2d23949a045a?w=400',
-    category: 'Oil Painting',
-    stock: 15,
-  },
-  {
-    id: 'sample-oil-3',
-    name: 'Portrait Study – Warm Oil',
-    description: 'Classic portrait lighting, ready for pet-focused commissions.',
-    price: 110,
-    image_url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400',
-    category: 'Oil Painting',
-    stock: 8,
-  },
-];
 
 export const searchParamsSchema = z.object({
   query: z.string().describe('Keywords to search for in product name or description'),

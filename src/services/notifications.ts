@@ -8,7 +8,7 @@ export interface Notification {
   title: string
   message: string
   read: boolean
-  metadata: Record<string, any>
+  metadata: Record<string, unknown>
   createdAt: string
 }
 
@@ -17,7 +17,7 @@ export async function createNotification(
   type: Notification['type'],
   title: string,
   message: string,
-  metadata: Record<string, any> = {},
+  metadata: Record<string, unknown> = {},
   client: SupabaseClient = supabase
 ) {
   const { error } = await client.from('notifications').insert({
@@ -57,8 +57,14 @@ export async function checkAlertsForProduct(
 
   if (error || !alerts) return
 
-  const notificationsToCreate = []
-  const alertsToUpdate = []
+  const notificationsToCreate: {
+    user_id: string
+    type: Notification['type']
+    title: string
+    message: string
+    metadata: Record<string, unknown>
+  }[] = []
+  const alertsToUpdate: string[] = []
 
   for (const alert of alerts) {
     let shouldNotify = false
