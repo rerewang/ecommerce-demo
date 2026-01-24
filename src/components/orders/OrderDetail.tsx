@@ -17,6 +17,19 @@ interface OrderDetailProps {
   initialOrder?: Order | null
 }
 
+
+function FormattedDate({ date }: { date: string }) {
+  const [formatted, setFormatted] = useState<string>('')
+
+  useEffect(() => {
+    setFormatted(new Date(date).toLocaleString())
+  }, [date])
+
+  if (!formatted) return <span>Loading...</span>
+
+  return <span>{formatted}</span>
+}
+
 export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
   const router = useRouter()
   const [order, setOrder] = useState<Order | null>(initialOrder || null)
@@ -190,11 +203,11 @@ export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
             <div className="p-4 space-y-2 text-sm text-slate-600">
               <div className="flex justify-between">
                 <span>下单时间</span>
-                <span>{new Date(order.createdAt).toLocaleString()}</span>
+                <FormattedDate date={order.createdAt} />
               </div>
               <div className="flex justify-between">
                 <span>最近更新</span>
-                <span>{new Date(order.updatedAt).toLocaleString()}</span>
+                <FormattedDate date={order.updatedAt} />
               </div>
             </div>
           </div>

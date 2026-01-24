@@ -15,7 +15,12 @@ export function ProductFilterBar({ onFilterChange, initialFilter }: ProductFilte
   const [sort, setSort] = useState<ProductFilter['sort']>(initialFilter?.sort || 'newest')
   
   const isMounted = useRef(false)
+  const onFilterChangeRef = useRef(onFilterChange)
   const debouncedQuery = useDebounce(query, 300)
+
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange
+  }, [onFilterChange])
 
   // Unified filter change handler
   useEffect(() => {
@@ -23,8 +28,8 @@ export function ProductFilterBar({ onFilterChange, initialFilter }: ProductFilte
       isMounted.current = true
       return
     }
-    onFilterChange({ query: debouncedQuery, category, sort })
-  }, [debouncedQuery, category, sort, onFilterChange])
+    onFilterChangeRef.current({ query: debouncedQuery, category, sort })
+  }, [debouncedQuery, category, sort])
 
   return (
     <div className="flex flex-col sm:flex-row gap-4 mb-6 p-4 bg-white rounded-lg shadow-sm border border-gray-100">
