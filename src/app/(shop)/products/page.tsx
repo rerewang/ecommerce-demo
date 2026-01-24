@@ -1,7 +1,8 @@
 import { getProducts } from '@/services/products'
+import { searchSemanticProductsAction } from '@/app/actions/product-actions'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { ProductFilterContainer } from '@/components/products/ProductFilterContainer'
-import type { ProductFilter } from '@/types/product'
+import type { ProductFilter, Product } from '@/types/product'
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -16,7 +17,28 @@ export default async function HomePage({ searchParams }: PageProps) {
     sort: typeof resolvedParams.sort === 'string' ? (resolvedParams.sort as ProductFilter['sort']) : undefined
   }
 
-  const products = await getProducts(filter)
+  let products: Product[] = []
+
+  if (filter.query) {
+    products = await searchSemanticProductsAction(filter.query)
+    
+    if (filter.category) {
+      products = products.filter(p => p.category === filter.category)
+    }
+
+    if (filter.sort) {
+      products.sort((a, b) => {
+        switch (filter.sort) {
+          case 'price_asc': return a.price - b.price
+          case 'price_desc': return b.price - a.price
+          case 'newest': return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+          default: return 0 
+        }
+      })
+    }
+  } else {
+    products = await getProducts(filter)
+  }
   
   return (
     <div className="min-h-screen bg-slate-50">

@@ -9,11 +9,14 @@ import type { Product } from '@/types/product'
 import { Edit, Trash2 } from 'lucide-react'
 
 import Link from 'next/link'
+import { regenerateAllEmbeddingsAction } from '@/app/actions/product-actions'
+import { toast } from 'react-hot-toast'
 
 export function AdminProductList() {
   const supabase = createClientComponentClient()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [isRegenerating, setIsRegenerating] = useState(false)
 
   const loadProducts = useCallback(async () => {
     try {
@@ -39,11 +42,39 @@ export function AdminProductList() {
     }
   }
 
+  const handleRegenerateEmbeddings = async () => {
+    if (!confirm('确定要重新生成所有商品的搜索向量吗？这可能需要几秒钟。')) return
+    
+    setIsRegenerating(true)
+    try {
+      const result = await regenerateAllEmbeddingsAction()
+      if (result.success) {
+        toast.success(`成功更新 ${result.successCount} 个商品的索引 (失败: ${result.errorCount})`)
+      } else {
+        toast.error('索引更新失败')
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('操作发生错误')
+    } finally {
+      setIsRegenerating(false)
+    }
+  }
+
   if (loading) return <div>加载中...</div>
 
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-heading font-bold text-slate-900">产品管理</h2>
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-heading font-bold text-slate-900">产品管理</h2>
+        <Button 
+          variant="outline" 
+          onClick={handleRegenerateEmbeddings}
+          disabled={isRegenerating}
+        >
+          {isRegenerating ? '生成中...' : '重新生成搜索索引'}
+        </Button>
+      </div>
       
       <div className="grid gap-4">
         {products.map(product => (
