@@ -71,7 +71,8 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     await expect(page).toHaveURL(/\/orders\/.+/, { timeout: 15000 });
     
     // 7. Verify Order Details
-    const statusBadge = page.locator('span.rounded-full');
+    // Use a more specific selector to avoid matching the "New" badge in the header
+    const statusBadge = page.locator('main span.rounded-full').filter({ hasText: /待支付|Paid|Pending/i }).first();
     await expect(statusBadge).toBeVisible();
   });
 });
