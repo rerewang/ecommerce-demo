@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { generateEmbedding } from './embedding';
 
 const { mockCreate } = vi.hoisted(() => {
@@ -18,6 +18,11 @@ vi.mock('openai', () => {
 describe('generateEmbedding', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.SILICONFLOW_API_KEY = 'test-key';
+  });
+
+  afterEach(() => {
+    delete process.env.SILICONFLOW_API_KEY;
   });
 
   it('generates embedding for text input', async () => {
