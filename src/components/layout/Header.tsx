@@ -54,6 +54,13 @@ export async function Header() {
             >
               Gallery
             </Link>
+            <Link
+              href="/features/ai-curator"
+              className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide group flex items-center gap-1"
+            >
+              AI Assistant
+              <span className="hidden group-hover:inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">New</span>
+            </Link>
             
             {user ? (
               <>
