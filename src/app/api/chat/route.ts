@@ -1,11 +1,13 @@
 import { randomUUID } from 'crypto';
 import { openai } from '@/lib/ai/openai';
-import { ToolLoopAgent, createAgentUIStreamResponse, stepCountIs, type UIMessage } from 'ai';
+import { ToolLoopAgent, createAgentUIStreamResponse, stepCountIs, type UIMessage, type ToolExecutionOptions } from 'ai';
 import { SYSTEM_PROMPT } from '@/lib/ai/prompts';
+import { createServerClient } from '@/lib/supabase-server';
 import {
   searchProducts,
   trackOrder,
   checkReturnEligibility,
+  createReturnTicket,
   createAlert,
   listUserOrders,
 } from '@/lib/ai/tools';
@@ -41,25 +43,61 @@ export async function POST(req: Request) {
 
   console.log('Sending messages to model:', JSON.stringify(normalizedMessages, null, 2));
 
-  const agent = new ToolLoopAgent({
+  // 1. Initialize Supabase client with cookies
+  const supabase = await createServerClient();
+  
+  // 2. Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  let role = 'customer';
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+    role = profile?.role || 'customer';
+  }
+
+  // 3. Prepare context
+  const toolContext = {
+    supabase,
+    user: user ? { id: user.id, role } : null
+  };
+
+  type ContextToolOptions = ToolExecutionOptions & { context?: typeof toolContext };
+
+  const toolsWithContext = {
+    searchProducts, // Doesn't need context
+    trackOrder: { ...trackOrder, execute: (args: unknown, options: ContextToolOptions) => trackOrder.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+    checkReturnEligibility: { ...checkReturnEligibility, execute: (args: unknown, options: ContextToolOptions) => checkReturnEligibility.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+    createReturnTicket: { ...createReturnTicket, execute: (args: unknown, options: ContextToolOptions) => createReturnTicket.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+    createAlert: { ...createAlert, execute: (args: unknown, options: ContextToolOptions) => createAlert.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+    listUserOrders: { ...listUserOrders, execute: (args: unknown, options: ContextToolOptions) => listUserOrders.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
+  };
+
+  // Re-create agent with bound tools
+  const boundAgent = new ToolLoopAgent({
     model: openai.chat(process.env.AI_MODEL_NAME || 'deepseek-ai/DeepSeek-V3'),
     instructions: SYSTEM_PROMPT,
     temperature: 0,
     toolChoice: 'auto',
     stopWhen: stepCountIs(5),
-    tools: {
-      searchProducts,
-      trackOrder,
-      checkReturnEligibility,
-      createAlert,
-      listUserOrders,
-    },
+    tools: toolsWithContext,
   });
 
   return createAgentUIStreamResponse({
-    agent,
+    agent: boundAgent,
     uiMessages: normalizedMessages,
     onStepFinish: (step) => {
+      // DEBUG LOGGING
+      if (step.toolCalls && step.toolCalls.length > 0) {
+        console.log('[Chatbot Debug] Tool Calls:', JSON.stringify(step.toolCalls, null, 2));
+      }
+      if (step.toolResults && step.toolResults.length > 0) {
+        console.log('[Chatbot Debug] Tool Results:', JSON.stringify(step.toolResults, null, 2));
+      }
+
       // Ensure tool results surface as UI parts for frontend cards.
       const hasToolResults = step.toolResults && step.toolResults.length > 0;
       if (!hasToolResults) return;

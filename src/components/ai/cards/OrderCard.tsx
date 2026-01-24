@@ -15,6 +15,15 @@ interface OrderData {
 }
 
 export function OrderCard({ data }: { data: OrderData }) {
+  // Defensive programming: Handle undefined/missing data gracefully
+  if (!data || !data.orderId) {
+    return (
+      <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">
+        Error: Invalid order data received
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden text-sm">
       {/* Header */}

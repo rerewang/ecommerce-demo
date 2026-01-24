@@ -7,6 +7,14 @@ vi.mock('@/lib/ai/openai', () => ({
   },
 }));
 
+vi.mock('@/lib/supabase-server', () => ({
+  createServerClient: vi.fn(async () => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+    },
+  })),
+}));
+
 vi.mock('@/lib/ai/tools', () => ({
   searchProducts: {
     description: 'mock search',
@@ -20,6 +28,11 @@ vi.mock('@/lib/ai/tools', () => ({
   },
   checkReturnEligibility: {
     description: 'mock return',
+    parameters: {},
+    execute: vi.fn(),
+  },
+  createReturnTicket: {
+    description: 'mock return ticket',
     parameters: {},
     execute: vi.fn(),
   },

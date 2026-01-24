@@ -6,6 +6,7 @@ import { cookies } from 'next/headers'
 import { User, LogOut } from 'lucide-react'
 import { logout } from '@/app/(shop)/login/actions'
 import { MobileNav } from './MobileNav'
+import { NotificationBell } from '@/components/ui/NotificationBell'
 
 export async function Header() {
   const cookieStore = await cookies()
@@ -68,6 +69,9 @@ export async function Header() {
                 >
                   Admin
                 </Link>
+                <div className="flex items-center gap-2">
+                  <NotificationBell />
+                </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground border-l pl-4 border-stone-200">
                   <User className="w-4 h-4" />
                   <span className="hidden sm:inline font-medium max-w-[150px] truncate">{user.email}</span>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase-server'
+import { createAlert, getUserAlerts } from '@/services/alerts'
 import { z } from 'zod'
 
 const CreateAlertSchema = z.object({
@@ -8,23 +9,7 @@ const CreateAlertSchema = z.object({
   targetPrice: z.number().optional(),
 })
 
-// Mock alerts store since we haven't created the table yet
-// In a real app, this would be a Supabase table 'product_alerts'
-// id, user_id, product_id, type, target_price, created_at
-interface MockAlert {
-  id: string
-  userId: string
-  productId: string
-  type: string
-  targetPrice?: number
-  createdAt: string
-  active: boolean
-}
-
-const MOCK_ALERTS_STORE: MockAlert[] = []
-
-export async function GET(req: Request) {
-  void req
+export async function GET() {
   try {
     const supabase = await createServerClient()
     const {
@@ -35,12 +20,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // In real app: select * from product_alerts where user_id = user.id
-    const userAlerts = MOCK_ALERTS_STORE.filter(a => a.userId === user.id)
-    return NextResponse.json(userAlerts)
-  } catch (error) {
+    const alerts = await getUserAlerts(user.id, supabase)
+    return NextResponse.json(alerts)
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
     console.error('GET /api/alerts error', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -64,22 +49,13 @@ export async function POST(req: Request) {
 
     const { type, productId, targetPrice } = result.data
 
-    const newAlert: MockAlert = {
-      id: crypto.randomUUID(),
-      userId: user.id,
-      productId,
-      type,
-      targetPrice,
-      createdAt: new Date().toISOString(),
-      active: true
-    }
-
-    MOCK_ALERTS_STORE.push(newAlert)
+    const newAlert = await createAlert(user.id, productId, type, targetPrice, supabase)
 
     return NextResponse.json(newAlert)
-  } catch (error) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
     console.error('POST /api/alerts error', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
 
@@ -101,15 +77,18 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Missing id' }, { status: 400 })
     }
 
-    const index = MOCK_ALERTS_STORE.findIndex(a => a.id === id && a.userId === user.id)
-    if (index !== -1) {
-      MOCK_ALERTS_STORE.splice(index, 1)
-      return NextResponse.json({ success: true })
-    }
+    const { error } = await supabase
+        .from('product_alerts')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id) // Ensure ownership
 
-    return NextResponse.json({ error: 'Alert not found' }, { status: 404 })
-  } catch (error) {
+    if (error) throw error
+
+    return NextResponse.json({ success: true })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error'
     console.error('DELETE /api/alerts error', error)
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

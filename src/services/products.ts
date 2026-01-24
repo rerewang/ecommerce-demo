@@ -140,6 +140,17 @@ export async function createProduct(supabase: SupabaseClient, input: CreateProdu
 }
 
 export async function updateProduct(supabase: SupabaseClient, id: string, input: UpdateProductInput): Promise<Product> {
+  // 1. Get old product data first for comparison
+  const { data: oldProduct } = await supabase
+    .from('products')
+    .select('price, stock')
+    .eq('id', id)
+    .single()
+
+  if (!oldProduct) {
+    throw new Error('Product not found')
+  }
+
   const updateData = { ...input }
   
   // Safe cleanup of read-only fields
@@ -158,7 +169,23 @@ export async function updateProduct(supabase: SupabaseClient, id: string, input:
   if (!data || data.length === 0) {
     throw new Error('Update failed: Product not found or permission denied (RLS)')
   }
-  return data[0]
+
+  const updatedProduct = data[0]
+
+  // 2. Check for alerts if price dropped or stock increased from 0
+  const { checkAlertsForProduct } = await import('@/services/notifications')
+  
+  // Check price drop
+  if (updateData.price !== undefined && updateData.price < oldProduct.price) {
+    await checkAlertsForProduct(id, updateData.price, updateData.stock ?? oldProduct.stock, supabase, 'price_drop')
+  }
+  
+  // Check restock
+  if (updateData.stock !== undefined && oldProduct.stock === 0 && updateData.stock > 0) {
+    await checkAlertsForProduct(id, updateData.price ?? oldProduct.price, updateData.stock, supabase, 'restock')
+  }
+
+  return updatedProduct
 }
 
 export async function deleteProduct(supabase: SupabaseClient, id: string): Promise<void> {

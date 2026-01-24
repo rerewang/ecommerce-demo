@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -15,6 +15,12 @@ import { Button } from '@/components/ui/Button'
 interface OrderDetailProps {
   orderId: string
   initialOrder?: Order | null
+}
+
+
+function FormattedDate({ date }: { date: string }) {
+  const formatted = useMemo(() => new Date(date).toLocaleString(), [date])
+  return <span>{formatted}</span>
 }
 
 export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
@@ -190,11 +196,11 @@ export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
             <div className="p-4 space-y-2 text-sm text-slate-600">
               <div className="flex justify-between">
                 <span>下单时间</span>
-                <span>{new Date(order.createdAt).toLocaleString()}</span>
+                <FormattedDate date={order.createdAt} />
               </div>
               <div className="flex justify-between">
                 <span>最近更新</span>
-                <span>{new Date(order.updatedAt).toLocaleString()}</span>
+                <FormattedDate date={order.updatedAt} />
               </div>
             </div>
           </div>
