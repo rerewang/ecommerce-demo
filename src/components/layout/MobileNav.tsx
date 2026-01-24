@@ -43,6 +43,14 @@ export function MobileNav({ user }: MobileNavProps) {
             >
               Gallery
             </Link>
+            <Link 
+              href="/features/ai-curator" 
+              onClick={() => setIsOpen(false)}
+              className="px-4 py-2 text-lg font-medium hover:bg-muted rounded-lg transition-colors flex items-center justify-between"
+            >
+              AI Assistant
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">New</span>
+            </Link>
             
             {user ? (
               <>
