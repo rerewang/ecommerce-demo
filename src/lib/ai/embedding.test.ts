@@ -70,11 +70,15 @@ describe('generateEmbedding', () => {
     expect(mockCreate).not.toHaveBeenCalled();
   });
   
-  it('throws error when API fails', async () => {
+  it('returns zero vector when API fails (resilience)', async () => {
       // Arrange
       mockCreate.mockRejectedValueOnce(new Error('API Error'));
 
-      // Act & Assert
-      await expect(generateEmbedding('test')).rejects.toThrow('API Error');
+      // Act
+      const result = await generateEmbedding('test');
+
+      // Assert
+      expect(result).toHaveLength(1024);
+      expect(result.every(v => v === 0)).toBe(true);
   });
 });

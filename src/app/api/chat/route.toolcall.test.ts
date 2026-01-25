@@ -3,7 +3,9 @@ import { SYSTEM_PROMPT } from '@/lib/ai/prompts';
 
 // Mock dependencies
 vi.mock('@/lib/ai/openai', () => ({
-  openai: vi.fn(() => ({ modelId: 'mock-model', provider: 'openai' })),
+  openai: {
+    chat: vi.fn(() => 'mock-model'),
+  },
 }));
 
 vi.mock('@/lib/supabase-server', () => ({
@@ -24,18 +26,25 @@ vi.mock('@/lib/ai/tools', () => ({
   listUserOrders: { description: 'list', parameters: {}, execute: vi.fn() },
 }));
 
+let capturedAgentOptions: unknown;
+
 // Mock ai SDK
 const mocks = vi.hoisted(() => ({
-  streamText: vi.fn().mockResolvedValue({
-    toDataStreamResponse: vi.fn(() => new Response('mock-stream')),
-  }),
+  createAgentUIStreamResponse: vi.fn(() => new Response('mock-stream')),
 }));
 
 vi.mock('ai', async () => {
   const actual = await vi.importActual('ai');
+  class ToolLoopAgentMock {
+    stream = vi.fn();
+    constructor(options: { instructions?: string }) {
+      capturedAgentOptions = options;
+    }
+  }
   return {
     ...actual,
-    streamText: mocks.streamText,
+    ToolLoopAgent: ToolLoopAgentMock,
+    createAgentUIStreamResponse: mocks.createAgentUIStreamResponse,
     convertToModelMessages: vi.fn((msgs) => msgs), // Identity for simple test
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tool: (t: any) => t, // Passthrough helper
@@ -47,9 +56,10 @@ import { POST } from './route';
 describe('POST /api/chat tool calling', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    capturedAgentOptions = undefined;
   });
 
-  it('should call streamText with correct system prompt and tools', async () => {
+  it('should call ToolLoopAgent with correct system prompt and tools', async () => {
     const req = new Request('http://localhost:3000/api/chat', {
       method: 'POST',
       body: JSON.stringify({
@@ -59,18 +69,13 @@ describe('POST /api/chat tool calling', () => {
 
     await POST(req);
 
-    expect(mocks.streamText).toHaveBeenCalled();
-    const callArgs = mocks.streamText.mock.calls[0][0];
-    
-    // Check system prompt
-    expect(callArgs.system).toBe(SYSTEM_PROMPT);
+    const opts = capturedAgentOptions as { instructions?: string, tools?: Record<string, unknown> };
+    expect(opts).toBeTruthy();
+    expect(opts.instructions).toBe(SYSTEM_PROMPT);
     
     // Check tools are present
-    expect(callArgs.tools).toBeDefined();
-    expect(callArgs.tools).toHaveProperty('searchProducts');
-    expect(callArgs.tools).toHaveProperty('trackOrder');
-    
-    // Check model
-    expect(callArgs.model).toEqual({ modelId: 'mock-model', provider: 'openai' });
+    expect(opts.tools).toBeDefined();
+    expect(opts.tools).toHaveProperty('searchProducts');
+    expect(opts.tools).toHaveProperty('trackOrder');
   });
 });
