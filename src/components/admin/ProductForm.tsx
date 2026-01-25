@@ -5,9 +5,8 @@ import { Product, CreateProductInput } from '@/types/product'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { MetadataEditor } from './MetadataEditor'
-import { createProduct, updateProduct } from '@/services/products'
+import { createProductAction, updateProductAction } from '@/app/actions/product-actions'
 import { useRouter } from 'next/navigation'
-import { createClientComponentClient } from '@/lib/supabase'
 
 import { toast } from 'react-hot-toast'
 
@@ -18,7 +17,6 @@ interface Props {
 
 export function ProductForm({ initialData, isEdit }: Props) {
   const router = useRouter()
-  const supabase = createClientComponentClient()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<Product>>(initialData || {
     name: '',
@@ -35,11 +33,11 @@ export function ProductForm({ initialData, isEdit }: Props) {
     setLoading(true)
     try {
       if (isEdit && initialData) {
-        await updateProduct(supabase, initialData.id, formData)
+        await updateProductAction(initialData.id, formData)
       } else {
         // Ensure formData has required fields for creation
         const input = formData as unknown as CreateProductInput
-        await createProduct(supabase, input)
+        await createProductAction(input)
         router.push('/admin/products')
         router.refresh()
         return

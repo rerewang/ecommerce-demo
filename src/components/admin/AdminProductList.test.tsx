@@ -9,6 +9,11 @@ vi.mock('@/lib/supabase', () => ({
 
 vi.mock('@/services/products', () => ({
   getProducts: vi.fn(),
+  deleteProduct: vi.fn(),
+}))
+
+vi.mock('@/app/actions/product-actions', () => ({
+  regenerateAllEmbeddingsAction: vi.fn(),
 }))
 
 const mockProducts = [

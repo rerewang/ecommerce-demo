@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SYSTEM_PROMPT } from '@/lib/ai/prompts';
 
+// Mock dependencies
 vi.mock('@/lib/ai/openai', () => ({
   openai: {
     chat: vi.fn(() => 'mock-model'),
@@ -15,44 +16,25 @@ vi.mock('@/lib/supabase-server', () => ({
   })),
 }));
 
+// Mock tools with minimal structure
 vi.mock('@/lib/ai/tools', () => ({
-  searchProducts: {
-    description: 'mock search',
-    parameters: {},
-    execute: vi.fn(),
-  },
-  trackOrder: {
-    description: 'mock track',
-    parameters: {},
-    execute: vi.fn(),
-  },
-  checkReturnEligibility: {
-    description: 'mock return',
-    parameters: {},
-    execute: vi.fn(),
-  },
-  createReturnTicket: {
-    description: 'mock return ticket',
-    parameters: {},
-    execute: vi.fn(),
-  },
-  createAlert: {
-    description: 'mock alert',
-    parameters: {},
-    execute: vi.fn(),
-  },
-  listUserOrders: {
-    description: 'mock list orders',
-    parameters: {},
-    execute: vi.fn(),
-  },
+  searchProducts: { description: 'search', parameters: {}, execute: vi.fn() },
+  trackOrder: { description: 'track', parameters: {}, execute: vi.fn() },
+  checkReturnEligibility: { description: 'return', parameters: {}, execute: vi.fn() },
+  createReturnTicket: { description: 'ticket', parameters: {}, execute: vi.fn() },
+  createAlert: { description: 'alert', parameters: {}, execute: vi.fn() },
+  listUserOrders: { description: 'list', parameters: {}, execute: vi.fn() },
 }));
 
 let capturedAgentOptions: unknown;
 
+// Mock ai SDK
+const mocks = vi.hoisted(() => ({
+  createAgentUIStreamResponse: vi.fn(() => new Response('mock-stream')),
+}));
+
 vi.mock('ai', async () => {
   const actual = await vi.importActual('ai');
-  const createResponse = vi.fn(() => new Response('mock-stream'));
   class ToolLoopAgentMock {
     stream = vi.fn();
     constructor(options: { instructions?: string }) {
@@ -62,7 +44,10 @@ vi.mock('ai', async () => {
   return {
     ...actual,
     ToolLoopAgent: ToolLoopAgentMock,
-    createAgentUIStreamResponse: createResponse,
+    createAgentUIStreamResponse: mocks.createAgentUIStreamResponse,
+    convertToModelMessages: vi.fn((msgs) => msgs), // Identity for simple test
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tool: (t: any) => t, // Passthrough helper
   };
 });
 
@@ -74,7 +59,7 @@ describe('POST /api/chat tool calling', () => {
     capturedAgentOptions = undefined;
   });
 
-  it('should keep system prompt clean without server-side product injection', async () => {
+  it('should call ToolLoopAgent with correct system prompt and tools', async () => {
     const req = new Request('http://localhost:3000/api/chat', {
       method: 'POST',
       body: JSON.stringify({
@@ -84,10 +69,13 @@ describe('POST /api/chat tool calling', () => {
 
     await POST(req);
 
-    const opts = capturedAgentOptions as { instructions?: string };
+    const opts = capturedAgentOptions as { instructions?: string, tools?: Record<string, unknown> };
     expect(opts).toBeTruthy();
-    expect(opts.instructions).toBeDefined();
-    expect(String(opts.instructions)).not.toContain(':::products');
-    expect(String(opts.instructions).trim()).toBe(SYSTEM_PROMPT.trim());
+    expect(opts.instructions).toBe(SYSTEM_PROMPT);
+    
+    // Check tools are present
+    expect(opts.tools).toBeDefined();
+    expect(opts.tools).toHaveProperty('searchProducts');
+    expect(opts.tools).toHaveProperty('trackOrder');
   });
 });
