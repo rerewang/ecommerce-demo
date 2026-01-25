@@ -125,7 +125,7 @@ describe('Product Server Actions', () => {
   });
 
   describe('searchSemanticProductsAction', () => {
-    it('generates embedding and calls RPC', async () => {
+    it('generates embedding and calls RPC (Hybrid)', async () => {
       // Arrange
       const query = 'cozy art';
       const mockEmbedding = [0.7, 0.8, 0.9];
@@ -136,11 +136,12 @@ describe('Product Server Actions', () => {
 
       // Assert
       expect(mocks.generateEmbedding).toHaveBeenCalledWith(query);
-      expect(mocks.supabase.rpc).toHaveBeenCalledWith('match_products', {
+      expect(mocks.supabase.rpc).toHaveBeenCalledWith('match_products_hybrid', expect.objectContaining({
+        query_text: query,
         query_embedding: mockEmbedding,
-        match_threshold: 0.5,
-        match_count: 10
-      });
+        match_count: 10,
+        rrf_k: 60
+      }));
     });
   });
 });

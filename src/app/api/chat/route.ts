@@ -12,19 +12,12 @@ import {
   listUserOrders,
 } from '@/lib/ai/tools';
 
-type IncomingPart = { type: 'text'; text: string };
-type IncomingMessage = {
-  role?: 'user' | 'assistant' | 'system';
-  content?: string;
-  parts?: IncomingPart[];
-};
-
-// Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const rawMessages: UIMessage[] | IncomingMessage[] = Array.isArray(body?.messages)
+  console.log('[Chatbot] Incoming body:', JSON.stringify(body));
+  const rawMessages: UIMessage[] | { role?: 'user' | 'assistant' | 'system'; content?: string }[] = Array.isArray(body?.messages)
     ? body.messages
     : [];
 
@@ -33,20 +26,15 @@ export async function POST(req: Request) {
       return m as UIMessage;
     }
 
-    const content = typeof (m as IncomingMessage)?.content === 'string' ? (m as IncomingMessage).content : '';
+    const content = typeof (m as { content?: string })?.content === 'string' ? (m as { content?: string }).content : '';
     return {
       id: randomUUID(),
-      role: (m as IncomingMessage)?.role ?? 'user',
+      role: (m as { role?: UIMessage['role'] })?.role ?? 'user',
       parts: [{ type: 'text', text: content || '' }],
     } as UIMessage;
   });
 
-  console.log('Sending messages to model:', JSON.stringify(normalizedMessages, null, 2));
-
-  // 1. Initialize Supabase client with cookies
   const supabase = await createServerClient();
-  
-  // 2. Get current user
   const { data: { user } } = await supabase.auth.getUser();
   
   let role = 'customer';
@@ -59,7 +47,6 @@ export async function POST(req: Request) {
     role = profile?.role || 'customer';
   }
 
-  // 3. Prepare context
   const toolContext = {
     supabase,
     user: user ? { id: user.id, role } : null
@@ -68,7 +55,7 @@ export async function POST(req: Request) {
   type ContextToolOptions = ToolExecutionOptions & { context?: typeof toolContext };
 
   const toolsWithContext = {
-    searchProducts, // Doesn't need context
+    searchProducts,
     trackOrder: { ...trackOrder, execute: (args: unknown, options: ContextToolOptions) => trackOrder.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
     checkReturnEligibility: { ...checkReturnEligibility, execute: (args: unknown, options: ContextToolOptions) => checkReturnEligibility.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
     createReturnTicket: { ...createReturnTicket, execute: (args: unknown, options: ContextToolOptions) => createReturnTicket.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
@@ -76,7 +63,6 @@ export async function POST(req: Request) {
     listUserOrders: { ...listUserOrders, execute: (args: unknown, options: ContextToolOptions) => listUserOrders.execute!(args as never, { ...options, context: toolContext } as ContextToolOptions) },
   };
 
-  // Re-create agent with bound tools
   const boundAgent = new ToolLoopAgent({
     model: openai.chat(process.env.AI_MODEL_NAME || 'deepseek-ai/DeepSeek-V3'),
     instructions: SYSTEM_PROMPT,
@@ -90,7 +76,12 @@ export async function POST(req: Request) {
     agent: boundAgent,
     uiMessages: normalizedMessages,
     onStepFinish: (step) => {
-      // DEBUG LOGGING
+      console.log('[Chatbot Debug] Step finished:', {
+        hasToolCalls: !!(step.toolCalls && step.toolCalls.length),
+        toolCallsCount: step.toolCalls?.length ?? 0,
+        hasToolResults: !!(step.toolResults && step.toolResults.length),
+        toolResultsCount: step.toolResults?.length ?? 0,
+      });
       if (step.toolCalls && step.toolCalls.length > 0) {
         console.log('[Chatbot Debug] Tool Calls:', JSON.stringify(step.toolCalls, null, 2));
       }
@@ -98,11 +89,9 @@ export async function POST(req: Request) {
         console.log('[Chatbot Debug] Tool Results:', JSON.stringify(step.toolResults, null, 2));
       }
 
-      // Ensure tool results surface as UI parts for frontend cards.
       const hasToolResults = step.toolResults && step.toolResults.length > 0;
       if (!hasToolResults) return;
 
-      // Append tool-result parts to the last assistant message in-place
       const last = normalizedMessages[normalizedMessages.length - 1];
       if (!last || last.role !== 'assistant') {
         return;
@@ -115,7 +104,6 @@ export async function POST(req: Request) {
         const toolCallId = anyResult.toolCallId || randomUUID();
         const result = anyResult.result ?? anyResult.output ?? anyResult.data;
         parts.push({
-          // the UI renderer expects a tool-result part carrying the payload
           type: 'tool-result' as const,
           toolName,
           toolCallId,

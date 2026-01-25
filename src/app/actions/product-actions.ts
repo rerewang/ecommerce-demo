@@ -6,55 +6,13 @@ import { generateEmbedding } from '@/lib/ai/embedding'
 import { checkAlertsForProduct } from '@/services/notifications'
 import { CreateProductInput, UpdateProductInput, Product } from '@/types/product'
 
+import { searchProducts } from '@/lib/search/products'
+
 /**
  * Server Action: Search products using hybrid search (semantic + metadata)
  */
 export async function searchSemanticProductsAction(query: string) {
-  if (!query) return []
-
-  // 1. Generate embedding for the query
-  const embedding = await generateEmbedding(query)
-
-  // 2. Setup Supabase client
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll()
-        },
-        setAll(cookiesToSet) {
-           // Actions are mostly read/write data, auth cookie setting is handled by middleware/auth routes usually.
-           // But for actions we need to pass setAll to satisfy type, though often unused for simple data mutation if not updating auth.
-           try {
-             cookiesToSet.forEach(({ name, value, options }) =>
-               cookieStore.set(name, value, options)
-             )
-           } catch {
-             // The `setAll` method was called from a Server Component.
-             // This can be ignored if you have middleware refreshing
-             // user sessions.
-           }
-        },
-      },
-    }
-  )
-
-  // 3. Call the hybrid search RPC function
-  const { data, error } = await supabase.rpc('match_products', {
-    query_embedding: embedding,
-    match_threshold: 0.5,
-    match_count: 10
-  })
-
-  if (error) {
-    console.error('Semantic search error:', error)
-    return []
-  }
-
-  return data as Product[]
+  return searchProducts(query)
 }
 
 /**
