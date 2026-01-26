@@ -39,6 +39,11 @@ vi.mock('@/components/ui/NotificationBell', () => ({
   NotificationBell: () => <div data-testid="notification-bell">Bell</div>,
 }))
 
+// Mock LanguageSwitcher
+vi.mock('./LanguageSwitcher', () => ({
+  LanguageSwitcher: () => <div data-testid="language-switcher">Lang</div>,
+}))
+
 // Mock Next.js cookies and Supabase
 vi.mock('next/headers', () => ({
   cookies: () => ({
@@ -54,12 +59,20 @@ vi.mock('next/navigation', () => ({
 
 // Default user mock (guest)
 const mockGetUser = vi.fn().mockResolvedValue({ data: { user: null } })
+const mockFrom = vi.fn(() => ({
+  select: vi.fn(() => ({
+    eq: vi.fn(() => ({
+      single: vi.fn().mockResolvedValue({ data: { role: 'customer' } })
+    }))
+  }))
+}))
 
 vi.mock('@supabase/ssr', () => ({
   createServerClient: () => ({
     auth: {
       getUser: mockGetUser,
     },
+    from: mockFrom,
   }),
 }))
 
@@ -107,9 +120,19 @@ describe('Header', () => {
         user: { 
           id: '123', 
           email: 'admin@example.com', 
-          role: 'admin' 
+          // role here is Supabase Auth role, not profile role
+          role: 'authenticated' 
         } 
       } 
+    })
+    
+    // Mock profile query for admin
+    mockFrom.mockReturnValueOnce({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn().mockResolvedValue({ data: { role: 'admin' } })
+        }))
+      }))
     })
     
     const header = await Header()
@@ -125,9 +148,18 @@ describe('Header', () => {
         user: { 
           id: '456', 
           email: 'user@example.com', 
-          role: 'customer' 
+          role: 'authenticated' 
         } 
       } 
+    })
+    
+    // Mock profile query for customer
+    mockFrom.mockReturnValueOnce({
+      select: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          single: vi.fn().mockResolvedValue({ data: { role: 'customer' } })
+        }))
+      }))
     })
     
     const header = await Header()

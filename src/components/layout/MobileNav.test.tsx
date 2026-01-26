@@ -28,6 +28,10 @@ vi.mock('lucide-react', () => ({
   Search: () => <div data-testid="search-icon">Search</div>,
 }))
 
+vi.mock('./LanguageSwitcher', () => ({
+  LanguageSwitcher: () => <div data-testid="language-switcher">Lang</div>,
+}))
+
 vi.mock('@/app/[locale]/(shop)/login/actions', () => ({
   logout: vi.fn(),
 }))
