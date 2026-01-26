@@ -11,7 +11,7 @@ vi.mock('lucide-react', () => ({
   Search: () => <div data-testid="search-icon">Search</div>,
 }))
 
-vi.mock('@/app/(shop)/login/actions', () => ({
+vi.mock('@/app/[locale]/(shop)/login/actions', () => ({
   logout: vi.fn(),
 }))
 

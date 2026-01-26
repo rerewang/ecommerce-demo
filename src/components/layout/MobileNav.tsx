@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { logout } from '@/app/(shop)/login/actions';
+import { logout } from '@/app/[locale]/(shop)/login/actions';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 
 interface MobileNavProps {
