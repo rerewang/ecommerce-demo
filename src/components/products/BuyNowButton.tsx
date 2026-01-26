@@ -1,9 +1,10 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { Button } from '@/components/ui/Button'
 import { useCheckoutStore } from '@/store/checkout'
 import { Product } from '@/types/product'
+import { useTranslations } from 'next-intl'
 
 interface Props {
   product: Product
@@ -14,6 +15,7 @@ interface Props {
 export function BuyNowButton({ product, variants, disabled }: Props) {
   const router = useRouter()
   const setDirectBuyItem = useCheckoutStore((s) => s.setDirectBuyItem)
+  const t = useTranslations('Products')
 
   const handleBuyNow = () => {
     setDirectBuyItem({
@@ -30,7 +32,7 @@ export function BuyNowButton({ product, variants, disabled }: Props) {
       disabled={disabled}
       className="flex-1 bg-orange-600 hover:bg-orange-700"
     >
-      立即购买
+      {t('buyNow')}
     </Button>
   )
 }

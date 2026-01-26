@@ -7,6 +7,7 @@ import { cookies } from 'next/headers'
 import { User, LogOut, Package } from 'lucide-react'
 import { logout } from '@/app/[locale]/(shop)/login/actions'
 import { GlobalSearch } from '@/components/ui/GlobalSearch'
+import { LanguageSwitcher } from './LanguageSwitcher'
 import { MobileNav } from './MobileNav'
 import { NotificationBell } from '@/components/ui/NotificationBell'
 
@@ -29,13 +30,25 @@ export async function Header() {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
+  
+  let userRole = 'customer'
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+    userRole = profile?.role || 'customer'
+  }
+
+  const userInfo = user ? { ...user, role: userRole } : null
 
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-white/50 sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 md:h-20 gap-4">
           <div className="flex items-center gap-4 flex-shrink-0">
-            <MobileNav user={user} />
+            <MobileNav user={userInfo} />
             <Link href="/" className="flex items-center group">
               <h1 className="font-serif text-xl md:text-2xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
                 PetPixel
@@ -70,6 +83,7 @@ export async function Header() {
           </div>
 
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+            <LanguageSwitcher />
             <div className="border-r md:border-none pr-4 md:pr-0">
                <CartBadge />
             </div>
@@ -83,7 +97,7 @@ export async function Header() {
                 >
                   <Package className="w-5 h-5" />
                 </Link>
-                {user.role === 'admin' && (
+                {userRole === 'admin' && (
                   <Link
                     href="/admin"
                     className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"

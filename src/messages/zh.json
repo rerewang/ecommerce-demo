@@ -83,8 +83,10 @@
     "title": "精选商品",
     "subtitle": "优质体验，安心购物",
     "addToCart": "加入购物车",
+    "buyNow": "立即购买",
     "addedToCart": "已添加到购物车",
     "outOfStock": "已售罄",
+    "productParams": "商品参数",
     "filter": {
       "searchPlaceholder": "搜索商品...",
       "categoryLabel": "分类",
@@ -97,6 +99,11 @@
     "card": {
       "stock": "库存: {count}"
     },
+    "services": {
+      "freeShipping": "包邮",
+      "returns": "7天退换",
+      "fastDelivery": "24h发货"
+    },
     "detail": {
       "backToList": "返回商品列表",
       "price": "价格",
@@ -104,6 +111,22 @@
       "inStock": "{count} 件可售",
       "outOfStock": "已售罄",
       "notFoundTitle": "商品未找到"
+    }
+  },
+  "Orders": {
+    "title": "我的订单",
+    "empty": "暂无订单",
+    "emptyDesc": "你还没有购买过商品，快去挑选心仪的商品吧",
+    "goShopping": "去逛逛",
+    "orderNo": "订单号",
+    "noImage": "无图",
+    "totalItems": "共 {count} 件商品",
+    "totalPaid": "实付金额",
+    "status": {
+      "pending": "待支付",
+      "paid": "已支付",
+      "shipped": "已发货",
+      "cancelled": "已取消"
     }
   },
   "Cart": {
@@ -188,6 +211,20 @@
       "cancel": "取消",
       "saveSuccess": "保存成功",
       "saveFailed": "保存失败"
+    }
+  },
+  "Notifications": {
+    "title": "消息通知",
+    "empty": "暂无消息",
+    "new": "{count} 条新消息",
+    "markRead": "标记为已读",
+    "price_drop": {
+      "title": "降价提醒！",
+      "message": "好消息！您关注的商品价格已降至 ¥{price}。"
+    },
+    "restock": {
+      "title": "到货提醒！",
+      "message": "您关注的商品已重新上架。"
     }
   }
 }

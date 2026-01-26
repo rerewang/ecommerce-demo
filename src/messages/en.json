@@ -83,8 +83,10 @@
     "title": "Featured Products",
     "subtitle": "Quality experience, shop with peace of mind",
     "addToCart": "Add to Cart",
+    "buyNow": "Buy Now",
     "addedToCart": "Added to Cart",
     "outOfStock": "Out of Stock",
+    "productParams": "Product Parameters",
     "filter": {
       "searchPlaceholder": "Search products...",
       "categoryLabel": "Category",
@@ -97,6 +99,11 @@
     "card": {
       "stock": "Stock: {count}"
     },
+    "services": {
+      "freeShipping": "Free Shipping",
+      "returns": "7-Day Returns",
+      "fastDelivery": "24h Delivery"
+    },
     "detail": {
       "backToList": "Back to Product List",
       "price": "Price",
@@ -104,6 +111,22 @@
       "inStock": "{count} in stock",
       "outOfStock": "Out of Stock",
       "notFoundTitle": "Product Not Found"
+    }
+  },
+  "Orders": {
+    "title": "My Orders",
+    "empty": "No Orders",
+    "emptyDesc": "You haven't purchased anything yet. Go pick something you like.",
+    "goShopping": "Go Shopping",
+    "orderNo": "Order No.",
+    "noImage": "No Image",
+    "totalItems": "Total {count} items",
+    "totalPaid": "Total Paid",
+    "status": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "shipped": "Shipped",
+      "cancelled": "Cancelled"
     }
   },
   "Cart": {
@@ -188,6 +211,20 @@
       "cancel": "Cancel",
       "saveSuccess": "Saved successfully",
       "saveFailed": "Save failed"
+    }
+  },
+  "Notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "new": "{count} new",
+    "markRead": "Mark as read",
+    "price_drop": {
+      "title": "Price Drop Alert!",
+      "message": "Good news! A product you're watching has dropped to ${price}."
+    },
+    "restock": {
+      "title": "Restock Alert!",
+      "message": "A product you're watching is back in stock."
     }
   }
 }

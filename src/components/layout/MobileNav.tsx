@@ -7,6 +7,7 @@ import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { logout } from '@/app/[locale]/(shop)/login/actions';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
+import { LanguageSwitcher } from './LanguageSwitcher';
 
 interface MobileNavProps {
   user: {
@@ -34,6 +35,9 @@ export function MobileNav({ user }: MobileNavProps) {
           <nav className="flex flex-col p-4 space-y-4">
             <div className="px-4 pb-2">
               <GlobalSearch onSearch={() => setIsOpen(false)} />
+            </div>
+            <div className="px-4">
+               <LanguageSwitcher />
             </div>
             <Link 
               href="/" 
