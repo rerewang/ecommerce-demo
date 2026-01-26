@@ -2,7 +2,7 @@
   "HomePage": {
     "title": "E-commerce Demo",
     "Hero": {
-      "title": "Masterpieces of <span class='text-primary italic block sm:inline'>Your Pet</span>",
+      "title": "Masterpieces of <span>Your Pet</span>",
       "subtitle": "Transform your furry friend into timeless digital art. Museum-quality AI portraits, generated instantly.",
       "cta": "Create Your Art",
       "features": {
@@ -12,7 +12,7 @@
       }
     },
     "HowItWorks": {
-      "title": "How it <span class='text-primary-500 italic'>Works</span>",
+      "title": "How it <span>Works</span>",
       "steps": {
         "upload": {
           "title": "Upload Photo",
@@ -29,11 +29,11 @@
       }
     },
     "FeaturedGallery": {
-      "title": "Curated <span class='text-primary italic'>Gallery</span>",
+      "title": "Curated <span>Gallery</span>",
       "subtitle": "Explore our latest AI-generated masterpieces. Each portrait is unique."
     },
     "StyleCategories": {
-      "title": "Browse by <span class='text-primary italic'>Style</span>",
+      "title": "Browse by <span>Style</span>",
       "viewAll": "View all styles →",
       "styles": {
         "oil": {

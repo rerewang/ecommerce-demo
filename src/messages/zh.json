@@ -2,7 +2,7 @@
   "HomePage": {
     "title": "电商演示",
     "Hero": {
-      "title": "<span class='text-primary italic block sm:inline'>爱宠</span> 的艺术杰作",
+      "title": "<span>爱宠</span> 的艺术杰作",
       "subtitle": "将您的毛茸茸朋友变成永恒的数字艺术。博物馆级 AI 肖像，即时生成。",
       "cta": "开始创作",
       "features": {
@@ -12,7 +12,7 @@
       }
     },
     "HowItWorks": {
-      "title": "工作 <span class='text-primary-500 italic'>原理</span>",
+      "title": "工作 <span>原理</span>",
       "steps": {
         "upload": {
           "title": "上传照片",
@@ -29,11 +29,11 @@
       }
     },
     "FeaturedGallery": {
-      "title": "精选 <span class='text-primary italic'>画廊</span>",
+      "title": "精选 <span>画廊</span>",
       "subtitle": "探索我们最新的 AI 生成杰作。每一幅肖像都是独一无二的。"
     },
     "StyleCategories": {
-      "title": "按 <span class='text-primary italic'>风格</span> 浏览",
+      "title": "按 <span>风格</span> 浏览",
       "viewAll": "查看所有风格 →",
       "styles": {
         "oil": {
