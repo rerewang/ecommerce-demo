@@ -39,33 +39,35 @@ export async function Header() {
                 PetPixel
               </h1>
             </Link>
+
+            <nav className="hidden md:flex items-center gap-6 ml-4">
+              <Link
+                href="/"
+                className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
+              >
+                Home
+              </Link>
+              <Link
+                href="/products"
+                className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
+              >
+                Gallery
+              </Link>
+              <Link
+                href="/features/ai-curator"
+                className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide group flex items-center gap-1"
+              >
+                AI Assistant
+                <span className="hidden group-hover:inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">New</span>
+              </Link>
+            </nav>
           </div>
           
-          <div className="hidden md:flex flex-1 justify-center max-w-md mx-4">
+          <div className="hidden md:flex flex-1 justify-end max-w-md mx-4">
             <GlobalSearch />
           </div>
 
-          <nav className="hidden md:flex items-center gap-6 flex-shrink-0">
-            <Link
-              href="/"
-              className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
-            >
-              Home
-            </Link>
-            <Link
-              href="/products"
-              className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
-            >
-              Gallery
-            </Link>
-            <Link
-              href="/features/ai-curator"
-              className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide group flex items-center gap-1"
-            >
-              AI Assistant
-              <span className="hidden group-hover:inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">New</span>
-            </Link>
-            
+          <div className="hidden md:flex items-center gap-4 flex-shrink-0">
             {user ? (
               <>
                 <Link
@@ -74,12 +76,14 @@ export async function Header() {
                 >
                   My Orders
                 </Link>
-                <Link
-                  href="/admin"
-                  className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
-                >
-                  Admin
-                </Link>
+                {user.role === 'admin' && (
+                  <Link
+                    href="/admin"
+                    className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <div className="flex items-center gap-2">
                   <NotificationBell />
                 </div>
@@ -103,7 +107,7 @@ export async function Header() {
             <div className="border-l md:border-none pl-4 md:pl-0">
                <CartBadge />
             </div>
-          </nav>
+          </div>
 
           <div className="md:hidden flex items-center gap-2">
              <CartBadge />
