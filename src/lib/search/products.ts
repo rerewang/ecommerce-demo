@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { generateEmbedding } from '@/lib/ai/embedding'
+import { translateQuery } from '@/lib/ai/query-translator'
 import { Product } from '@/types/product'
 
 /**
@@ -10,8 +11,11 @@ import { Product } from '@/types/product'
 export async function searchProducts(query: string, matchCount = 10): Promise<Product[]> {
   if (!query) return []
 
-  // 1. Generate embedding for the query
-  const embedding = await generateEmbedding(query)
+  // 1. Translate/Optimize query
+  const translatedQuery = await translateQuery(query)
+
+  // 2. Generate embedding for the translated query
+  const embedding = await generateEmbedding(translatedQuery)
 
   // Check if embedding is valid (not zero vector)
   const isZeroVector = embedding.every(v => v === 0)
@@ -34,13 +38,13 @@ export async function searchProducts(query: string, matchCount = 10): Promise<Pr
     const { data } = await supabase
       .from('products')
       .select('*')
-      .ilike('name', `%${query}%`)
+      .ilike('name', `%${translatedQuery}%`)
       .limit(matchCount)
     
     return (data || []) as Product[]
   }
 
-  // 2. Setup Supabase client
+  // 3. Setup Supabase client
   const cookieStore = await cookies()
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -63,9 +67,9 @@ export async function searchProducts(query: string, matchCount = 10): Promise<Pr
     }
   )
 
-  // 3. Call the hybrid search RPC function (RRF)
+  // 4. Call the hybrid search RPC function (RRF)
   const { data, error } = await supabase.rpc('match_products_hybrid', {
-    query_text: query,
+    query_text: translatedQuery,
     query_embedding: embedding,
     match_count: matchCount,
     rrf_k: 60

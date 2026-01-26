@@ -5,6 +5,7 @@ import { CreateProductInput, UpdateProductInput } from '@/types/product';
 const mocks = vi.hoisted(() => {
   return {
     generateEmbedding: vi.fn(),
+    translateQuery: vi.fn(),
     cookies: vi.fn(),
     supabase: {
       from: vi.fn(),
@@ -23,6 +24,10 @@ vi.mock('@/services/notifications', () => ({
 
 vi.mock('@/lib/ai/embedding', () => ({
   generateEmbedding: mocks.generateEmbedding
+}));
+
+vi.mock('@/lib/ai/query-translator', () => ({
+  translateQuery: mocks.translateQuery
 }));
 
 vi.mock('@supabase/ssr', () => ({
@@ -63,6 +68,9 @@ describe('Product Server Actions', () => {
     
     // Default success for rpc
     mocks.supabase.rpc.mockResolvedValue({ data: [], error: null });
+
+    // Default success for translateQuery
+    mocks.translateQuery.mockImplementation(async (q: string) => `translated ${q}`);
   });
 
   describe('createProductAction', () => {
@@ -135,9 +143,10 @@ describe('Product Server Actions', () => {
       await searchSemanticProductsAction(query);
 
       // Assert
-      expect(mocks.generateEmbedding).toHaveBeenCalledWith(query);
+      expect(mocks.translateQuery).toHaveBeenCalledWith(query);
+      expect(mocks.generateEmbedding).toHaveBeenCalledWith(`translated ${query}`);
       expect(mocks.supabase.rpc).toHaveBeenCalledWith('match_products_hybrid', expect.objectContaining({
-        query_text: query,
+        query_text: `translated ${query}`,
         query_embedding: mockEmbedding,
         match_count: 10,
         rrf_k: 60

@@ -5,6 +5,10 @@ vi.mock('@/lib/ai/embedding', () => ({
   generateEmbedding: vi.fn().mockResolvedValue([0.1, 0.2, 0.3])
 }))
 
+vi.mock('@/lib/ai/query-translator', () => ({
+  translateQuery: vi.fn(async (q) => `translated ${q}`)
+}))
+
 const mockRpc = vi.fn()
 const mockSupabase = {
   rpc: mockRpc
@@ -40,7 +44,7 @@ describe('searchProducts', () => {
     const result = await searchProducts('test query')
 
     expect(mockRpc).toHaveBeenCalledWith('match_products_hybrid', expect.objectContaining({
-      query_text: 'test query',
+      query_text: 'translated test query',
       match_count: 10
     }))
     
