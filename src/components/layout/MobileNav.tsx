@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { logout } from '@/app/(shop)/login/actions';
+import { GlobalSearch } from '@/components/ui/GlobalSearch';
 
 interface MobileNavProps {
   user: {
@@ -29,6 +30,9 @@ export function MobileNav({ user }: MobileNavProps) {
       {isOpen && (
         <div className="absolute top-16 md:top-20 left-0 w-full bg-background border-b border-muted shadow-lg animate-in slide-in-from-top-2 duration-200 z-50">
           <nav className="flex flex-col p-4 space-y-4">
+            <div className="px-4 pb-2">
+              <GlobalSearch onSearch={() => setIsOpen(false)} />
+            </div>
             <Link 
               href="/" 
               onClick={() => setIsOpen(false)}

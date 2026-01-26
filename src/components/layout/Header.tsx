@@ -5,6 +5,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { User, LogOut } from 'lucide-react'
 import { logout } from '@/app/(shop)/login/actions'
+import { GlobalSearch } from '@/components/ui/GlobalSearch'
 import { MobileNav } from './MobileNav'
 import { NotificationBell } from '@/components/ui/NotificationBell'
 
@@ -30,8 +31,8 @@ export async function Header() {
   return (
     <header className="bg-white/80 backdrop-blur-md border-b border-white/50 sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 md:h-20">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between h-16 md:h-20 gap-4">
+          <div className="flex items-center gap-4 flex-shrink-0">
             <MobileNav user={user} />
             <Link href="/" className="flex items-center group">
               <h1 className="font-serif text-xl md:text-2xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
@@ -40,8 +41,11 @@ export async function Header() {
             </Link>
           </div>
           
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex flex-1 justify-center max-w-md mx-4">
+            <GlobalSearch />
+          </div>
+
+          <nav className="hidden md:flex items-center gap-6 flex-shrink-0">
             <Link
               href="/"
               className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
@@ -81,7 +85,7 @@ export async function Header() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground border-l pl-4 border-stone-200">
                   <User className="w-4 h-4" />
-                  <span className="hidden sm:inline font-medium max-w-[150px] truncate">{user.email}</span>
+                  <span className="hidden lg:inline font-medium max-w-[150px] truncate">{user.email}</span>
                 </div>
                 <form action={logout}>
                   <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50/50">
@@ -101,9 +105,8 @@ export async function Header() {
             </div>
           </nav>
 
-          {/* Mobile Cart Badge (always visible) */}
-          <div className="md:hidden flex items-center">
-            <CartBadge />
+          <div className="md:hidden flex items-center gap-2">
+             <CartBadge />
           </div>
         </div>
       </div>

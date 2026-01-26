@@ -19,6 +19,12 @@ vi.mock('next/headers', () => ({
   }),
 }))
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => ({ get: vi.fn() }),
+  usePathname: () => '/',
+}))
+
 vi.mock('@supabase/ssr', () => ({
   createServerClient: () => ({
     auth: {

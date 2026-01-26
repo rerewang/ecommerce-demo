@@ -8,10 +8,17 @@ vi.mock('lucide-react', () => ({
   ShoppingBag: () => <div data-testid="cart-icon">Cart</div>,
   User: () => <div data-testid="user-icon">User</div>,
   LogOut: () => <div data-testid="logout-icon">Logout</div>,
+  Search: () => <div data-testid="search-icon">Search</div>,
 }))
 
 vi.mock('@/app/(shop)/login/actions', () => ({
   logout: vi.fn(),
+}))
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => ({ get: vi.fn() }),
+  usePathname: () => '/',
 }))
 
 describe('MobileNav', () => {
