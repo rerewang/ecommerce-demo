@@ -102,6 +102,7 @@ describe('Header', () => {
   })
 
   it('hides Admin link for regular user', async () => {
+    // Mock regular user
     mockGetUser.mockResolvedValueOnce({ 
       data: { 
         user: { 
@@ -116,6 +117,9 @@ describe('Header', () => {
     render(header)
     
     expect(screen.queryByText('Admin')).not.toBeInTheDocument()
-    expect(screen.getByText('My Orders')).toBeInTheDocument()
+    expect(screen.getByTitle('My Orders')).toBeInTheDocument()
+    // Verify user name formatting
+    expect(screen.getByText('user')).toBeInTheDocument()
+    expect(screen.queryByText('user@example.com')).not.toBeInTheDocument()
   })
 })

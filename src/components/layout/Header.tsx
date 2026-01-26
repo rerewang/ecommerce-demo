@@ -3,7 +3,7 @@ import { CartBadge } from '@/components/cart/CartBadge'
 import { Button } from '@/components/ui/Button'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { User, LogOut } from 'lucide-react'
+import { User, LogOut, Package } from 'lucide-react'
 import { logout } from '@/app/(shop)/login/actions'
 import { GlobalSearch } from '@/components/ui/GlobalSearch'
 import { MobileNav } from './MobileNav'
@@ -68,13 +68,18 @@ export async function Header() {
           </div>
 
           <div className="hidden md:flex items-center gap-4 flex-shrink-0">
+            <div className="border-r md:border-none pr-4 md:pr-0">
+               <CartBadge />
+            </div>
+
             {user ? (
               <>
                 <Link
                   href="/orders"
-                  className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
+                  className="text-muted-foreground hover:text-foreground font-medium transition-colors p-2 hover:bg-slate-100 rounded-full"
+                  title="My Orders"
                 >
-                  My Orders
+                  <Package className="w-5 h-5" />
                 </Link>
                 {user.role === 'admin' && (
                   <Link
@@ -89,7 +94,9 @@ export async function Header() {
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground border-l pl-4 border-stone-200">
                   <User className="w-4 h-4" />
-                  <span className="hidden lg:inline font-medium max-w-[150px] truncate">{user.email}</span>
+                  <span className="hidden lg:inline font-medium max-w-[150px] truncate">
+                    {user.email?.split('@')[0] || 'User'}
+                  </span>
                 </div>
                 <form action={logout}>
                   <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50/50">
@@ -103,10 +110,6 @@ export async function Header() {
                 <Button variant="secondary" size="sm" className="rounded-full px-6">Sign In</Button>
               </Link>
             )}
-            
-            <div className="border-l md:border-none pl-4 md:pl-0">
-               <CartBadge />
-            </div>
           </div>
 
           <div className="md:hidden flex items-center gap-2">
