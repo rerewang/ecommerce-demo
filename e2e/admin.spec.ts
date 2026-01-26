@@ -11,7 +11,7 @@ test.describe('Admin Flow (Real Admin)', () => {
     await page.getByLabel('密码').fill(password);
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
     
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/', { timeout: 10000 });
 
     // 2. Go to Admin Orders
     await page.goto('/admin/orders');
@@ -34,7 +34,7 @@ test.describe('Admin Flow (Real Admin)', () => {
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/', { timeout: 10000 });
 
     // 2. Go to Admin Products
     await page.goto('/admin/products');

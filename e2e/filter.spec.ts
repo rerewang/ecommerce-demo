@@ -5,7 +5,7 @@ test.describe('Product Filtering & Search', () => {
     await page.goto('/products');
 
     // Find search input
-    const searchInput = page.getByPlaceholder('Search products...');
+    const searchInput = page.getByRole('main').getByPlaceholder('Search products...');
     await expect(searchInput).toBeVisible();
 
     // Type query
@@ -47,7 +47,7 @@ test.describe('Product Filtering & Search', () => {
     await page.goto('/products?category=Electronics');
 
     // Search
-    const searchInput = page.getByPlaceholder('Search products...');
+    const searchInput = page.getByRole('main').getByPlaceholder('Search products...');
     await searchInput.fill('phone');
     
     // Should have both
@@ -58,7 +58,7 @@ test.describe('Product Filtering & Search', () => {
   test('removes params when cleared', async ({ page }) => {
     await page.goto('/products?q=phone');
 
-    const searchInput = page.getByPlaceholder('Search products...');
+    const searchInput = page.getByRole('main').getByPlaceholder('Search products...');
     await searchInput.fill('');
 
     await expect(page).not.toHaveURL(/q=phone/);

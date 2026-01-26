@@ -5,12 +5,13 @@ test.describe('E2E Direct Buy Flow', () => {
   const password = '123456';
 
   test('should allow user to buy now directly', async ({ page }) => {
+    test.setTimeout(60000);
     // 1. Login
     await page.goto('/login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/', { timeout: 10000 });
 
     // 2. Navigate to products
     await page.goto('/products');

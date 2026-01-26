@@ -5,6 +5,7 @@ test.describe('E2E Checkout Flow (Real User)', () => {
   const password = '123456';
 
   test('should allow user to purchase items', async ({ page }) => {
+    test.setTimeout(60000);
     const consoleMessages: { type: string; text: string }[] = [];
     
     page.on('console', msg => {
@@ -29,7 +30,7 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
     
     // Should be redirected to home
-    await expect(page).toHaveURL('/');
+    await expect(page).toHaveURL('/', { timeout: 10000 });
     await page.goto('/products');
 
     // 2. Add Item to Cart

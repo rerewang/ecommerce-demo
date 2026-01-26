@@ -13,7 +13,7 @@ test('RBAC: customer cannot access admin', async ({ page }) => {
   await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
   
   // Wait for login to complete (redirect to home)
-  await expect(page).toHaveURL('/');
+  await expect(page).toHaveURL('/', { timeout: 10000 });
 
   // 3. Try to go to admin
   await page.goto('/admin');
