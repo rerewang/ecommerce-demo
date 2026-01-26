@@ -1,5 +1,193 @@
 {
   "HomePage": {
-    "title": "E-commerce Demo"
+    "title": "E-commerce Demo",
+    "Hero": {
+      "title": "Masterpieces of <span class='text-primary italic block sm:inline'>Your Pet</span>",
+      "subtitle": "Transform your furry friend into timeless digital art. Museum-quality AI portraits, generated instantly.",
+      "cta": "Create Your Art",
+      "features": {
+        "instant": "Instant Generation",
+        "quality": "Museum Quality",
+        "unique": "100% Unique"
+      }
+    },
+    "HowItWorks": {
+      "title": "How it <span class='text-primary-500 italic'>Works</span>",
+      "steps": {
+        "upload": {
+          "title": "Upload Photo",
+          "desc": "Upload a clear photo of your pet. Dogs, cats, birds - we love them all."
+        },
+        "style": {
+          "title": "Choose Style",
+          "desc": "Select from 50+ unique artistic styles, from Renaissance to Pop Art."
+        },
+        "result": {
+          "title": "Get Art",
+          "desc": "Receive your museum-quality digital portrait instantly. Ready to print."
+        }
+      }
+    },
+    "FeaturedGallery": {
+      "title": "Curated <span class='text-primary italic'>Gallery</span>",
+      "subtitle": "Explore our latest AI-generated masterpieces. Each portrait is unique."
+    },
+    "StyleCategories": {
+      "title": "Browse by <span class='text-primary italic'>Style</span>",
+      "viewAll": "View all styles →",
+      "styles": {
+        "oil": {
+          "name": "Classic Oil",
+          "description": "Renaissance style portraits"
+        },
+        "cyber": {
+          "name": "Cyberpunk",
+          "description": "Neon lights and chrome"
+        },
+        "3d": {
+          "name": "3D Pixar",
+          "description": "Cute animated character style"
+        }
+      }
+    }
+  },
+  "Navigation": {
+    "home": "Home",
+    "gallery": "Gallery",
+    "aiAssistant": "AI Assistant",
+    "new": "New",
+    "myOrders": "My Orders",
+    "admin": "Admin",
+    "adminDashboard": "Admin Dashboard",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "exit": "Exit"
+  },
+  "Auth": {
+    "title": "Authentication",
+    "loginTitle": "Sign In",
+    "registerTitle": "Create Account",
+    "loginSubtitle": "Don't have an account?",
+    "registerSubtitle": "Already have an account?",
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "loginButton": "Sign In",
+    "registerButton": "Sign Up",
+    "switchToRegister": "Sign up",
+    "switchToLogin": "Sign in",
+    "pending": "Processing...",
+    "emailPlaceholder": "user@example.com",
+    "passwordPlaceholder": "******"
+  },
+  "Products": {
+    "title": "Featured Products",
+    "subtitle": "Quality experience, shop with peace of mind",
+    "addToCart": "Add to Cart",
+    "addedToCart": "Added to Cart",
+    "outOfStock": "Out of Stock",
+    "filter": {
+      "searchPlaceholder": "Search products...",
+      "categoryLabel": "Category",
+      "allCategories": "All Categories",
+      "sortLabel": "Sort",
+      "sortNewest": "Newest",
+      "sortPriceAsc": "Price: Low to High",
+      "sortPriceDesc": "Price: High to Low"
+    },
+    "card": {
+      "stock": "Stock: {count}"
+    },
+    "detail": {
+      "backToList": "Back to Product List",
+      "price": "Price",
+      "stockStatus": "Stock Status",
+      "inStock": "{count} in stock",
+      "outOfStock": "Out of Stock",
+      "notFoundTitle": "Product Not Found"
+    }
+  },
+  "Cart": {
+    "title": "Shopping Cart",
+    "empty": "Your cart is empty",
+    "emptyDesc": "Go pick some items you like",
+    "continueShopping": "Continue Shopping",
+    "loading": "Loading cart...",
+    "summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "total": "Total",
+    "checkout": "Proceed to Checkout",
+    "removeItem": "Remove Item",
+    "decreaseQuantity": "Decrease Quantity",
+    "increaseQuantity": "Increase Quantity"
+  },
+  "Checkout": {
+    "title": "Checkout",
+    "pageTitle": "Fill Order Information",
+    "contact": "Contact Information",
+    "shipping": "Shipping Address",
+    "payment": "Payment Method",
+    "pay": "Pay {amount}",
+    "processing": "Processing...",
+    "creatingOrder": "Creating Order...",
+    "paying": "Paying...",
+    "success": "Order Placed Successfully",
+    "error": "Checkout Failed",
+    "form": {
+      "name": "Name",
+      "namePlaceholder": "Recipient Name",
+      "address": "Address",
+      "addressPlaceholder": "Detailed Address",
+      "city": "City",
+      "cityPlaceholder": "City",
+      "zip": "Zip Code",
+      "zipPlaceholder": "000000"
+    },
+    "paymentMethods": {
+      "alipay": "Alipay",
+      "wechat": "WeChat Pay",
+      "card": "Credit Card"
+    },
+    "emptyCart": "Cart is empty, go pick some items"
+  },
+  "Admin": {
+    "title": "Admin Panel",
+    "dashboard": "Dashboard",
+    "products": "Products",
+    "orders": "Orders",
+    "users": "Users",
+    "settings": "Settings",
+    "backToShop": "Back to Shop",
+    "productManagement": "Product Management",
+    "orderManagement": "Order Management",
+    "addProduct": "Add Product",
+    "createProduct": "Create Product",
+    "editProduct": "Edit Product",
+    "deleteProduct": "Delete Product",
+    "confirmDelete": "Are you sure you want to delete?",
+    "deleteFailed": "Delete failed",
+    "regenerateIndex": "Regenerate Search Index",
+    "regenerating": "Regenerating...",
+    "confirmRegenerate": "Are you sure you want to regenerate all product embeddings? This may take a few seconds.",
+    "regenerateSuccess": "Successfully updated {count} products (Failed: {errorCount})",
+    "regenerateFailed": "Index update failed",
+    "errorOccurred": "An error occurred",
+    "loading": "Loading...",
+    "form": {
+      "name": "Product Name",
+      "price": "Price",
+      "description": "Description",
+      "category": "Category",
+      "stock": "Stock",
+      "images": "Image URL",
+      "style": "Style",
+      "aiPrompt": "AI Prompt",
+      "metadata": "Metadata",
+      "save": "Save Product",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "saveSuccess": "Saved successfully",
+      "saveFailed": "Save failed"
+    }
   }
 }

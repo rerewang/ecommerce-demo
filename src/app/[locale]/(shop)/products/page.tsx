@@ -3,12 +3,14 @@ import { searchSemanticProductsAction } from '@/app/actions/product-actions'
 import { ProductGrid } from '@/components/products/ProductGrid'
 import { ProductFilterContainer } from '@/components/products/ProductFilterContainer'
 import type { ProductFilter, Product } from '@/types/product'
+import { getTranslations } from 'next-intl/server'
 
 interface PageProps {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
 export default async function HomePage({ searchParams }: PageProps) {
+  const t = await getTranslations('Products')
   const resolvedParams = await searchParams
   
   const filter: ProductFilter = {
@@ -46,10 +48,10 @@ export default async function HomePage({ searchParams }: PageProps) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h2 className="font-heading text-3xl font-bold text-slate-900 mb-2">
-            精选商品
+            {t('title')}
           </h2>
           <p className="text-slate-600 mb-6">
-            优质体验，安心购物
+            {t('subtitle')}
           </p>
           
           <ProductFilterContainer />

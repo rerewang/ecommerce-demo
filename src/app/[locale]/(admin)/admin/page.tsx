@@ -3,8 +3,11 @@ import { Header } from '@/components/layout/Header'
 import { Button } from '@/components/ui/Button'
 import { Plus } from 'lucide-react'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const t = await getTranslations('Admin')
+
   return (
     <div className="min-h-screen bg-slate-50">
       <Header />
@@ -13,20 +16,20 @@ export default function AdminPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-heading text-3xl font-bold text-slate-900 mb-2">
-              商品管理
+              {t('productManagement')}
             </h1>
             <div className="flex gap-4 text-sm">
               <span className="text-slate-900 font-medium border-b-2 border-slate-900">
-                商品管理
+                {t('productManagement')}
               </span>
               <Link href="/admin/orders" className="text-slate-500 hover:text-slate-900">
-                订单管理
+                {t('orderManagement')}
               </Link>
             </div>
           </div>
           <Button variant="primary">
             <Plus className="w-4 h-4 mr-2" />
-            添加商品
+            {t('addProduct')}
           </Button>
         </div>
         

@@ -6,15 +6,15 @@ test.describe('Admin Flow (Real Admin)', () => {
 
   test('admin can manage orders', async ({ page }) => {
     // 1. Login
-    await page.goto('/login');
+    await page.goto('/zh/login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
     
-    await expect(page).toHaveURL('/', { timeout: 10000 });
+    await expect(page).toHaveURL(/\/zh/, { timeout: 10000 });
 
     // 2. Go to Admin Orders
-    await page.goto('/admin/orders');
+    await page.goto('/zh/admin/orders');
     
     // 3. Verify Access
     await expect(page.getByRole('heading', { name: '订单管理' })).toBeVisible();
@@ -30,14 +30,14 @@ test.describe('Admin Flow (Real Admin)', () => {
 
   test('admin can manage products', async ({ page }) => {
     // 1. Login
-    await page.goto('/login');
+    await page.goto('/zh/login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-    await expect(page).toHaveURL('/', { timeout: 10000 });
+    await expect(page).toHaveURL(/\/zh/, { timeout: 10000 });
 
     // 2. Go to Admin Products
-    await page.goto('/admin/products');
+    await page.goto('/zh/admin/products');
     
     // 3. Verify Page Title
     await expect(page.getByRole('heading', { name: '商品管理' })).toBeVisible();

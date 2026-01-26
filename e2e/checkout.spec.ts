@@ -24,14 +24,14 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     });
 
     // 1. Login
-    await page.goto('/login');
+    await page.goto('/zh/login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
     
-    // Should be redirected to home
-    await expect(page).toHaveURL('/', { timeout: 10000 });
-    await page.goto('/products');
+    // Should be redirected to home (with locale)
+    await expect(page).toHaveURL(/\/zh/, { timeout: 10000 });
+    await page.goto('/zh/products');
 
     // 2. Add Item to Cart
     // Find a product that is in stock
@@ -42,14 +42,14 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     await expect(page.getByText('已添加到购物车')).toBeVisible();
 
     // 3. Navigate to cart immediately (no page reload)
-    await page.locator('a[href="/cart"]').first().click();
-    await expect(page).toHaveURL('/cart');
+    await page.locator('a[href="/zh/cart"]').first().click();
+    await expect(page).toHaveURL(/\/zh\/cart/);
     
     const checkoutLink = page.getByRole('link', { name: /前往结算/ });
     await expect(checkoutLink).toBeVisible({ timeout: 10000 });
     
     await checkoutLink.click();
-    await page.waitForURL('/checkout', { timeout: 10000 });
+    await page.waitForURL(/\/zh\/checkout/, { timeout: 10000 });
     
     // 4. Fill shipping info
     await expect(page.getByText('正在验证登录状态...')).not.toBeVisible({ timeout: 5000 });
@@ -69,7 +69,7 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     await submitBtn.click();
 
     // 6. Verify Order Success
-    await expect(page).toHaveURL(/\/orders\/.+/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/zh\/orders\/.+/, { timeout: 15000 });
     
     // 7. Verify Order Details
     // Use a more specific selector to avoid matching the "New" badge in the header

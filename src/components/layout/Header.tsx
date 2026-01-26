@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { CartBadge } from '@/components/cart/CartBadge'
 import { Button } from '@/components/ui/Button'
 import { createServerClient } from '@supabase/ssr'
@@ -10,6 +11,7 @@ import { MobileNav } from './MobileNav'
 import { NotificationBell } from '@/components/ui/NotificationBell'
 
 export async function Header() {
+  const t = await getTranslations('Navigation')
   const cookieStore = await cookies()
   
   const supabase = createServerClient(
@@ -45,20 +47,20 @@ export async function Header() {
                 href="/"
                 className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
               >
-                Home
+                {t('home')}
               </Link>
               <Link
                 href="/products"
                 className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
               >
-                Gallery
+                {t('gallery')}
               </Link>
               <Link
                 href="/features/ai-curator"
                 className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide group flex items-center gap-1"
               >
-                AI Assistant
-                <span className="hidden group-hover:inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">New</span>
+                {t('aiAssistant')}
+                <span className="hidden group-hover:inline-block text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full ml-1">{t('new')}</span>
               </Link>
             </nav>
           </div>
@@ -77,7 +79,7 @@ export async function Header() {
                 <Link
                   href="/orders"
                   className="text-muted-foreground hover:text-foreground font-medium transition-colors p-2 hover:bg-slate-100 rounded-full"
-                  title="My Orders"
+                  title={t('myOrders')}
                 >
                   <Package className="w-5 h-5" />
                 </Link>
@@ -86,7 +88,7 @@ export async function Header() {
                     href="/admin"
                     className="text-muted-foreground hover:text-foreground font-medium transition-colors text-sm tracking-wide"
                   >
-                    Admin
+                    {t('admin')}
                   </Link>
                 )}
                 <div className="flex items-center gap-2">
@@ -101,13 +103,13 @@ export async function Header() {
                 <form action={logout}>
                   <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-600 hover:bg-red-50/50">
                     <LogOut className="w-4 h-4 mr-2" />
-                    Exit
+                    {t('exit')}
                   </Button>
                 </form>
               </>
             ) : (
               <Link href="/login">
-                <Button variant="secondary" size="sm" className="rounded-full px-6">Sign In</Button>
+                <Button variant="secondary" size="sm" className="rounded-full px-6">{t('signIn')}</Button>
               </Link>
             )}
           </div>

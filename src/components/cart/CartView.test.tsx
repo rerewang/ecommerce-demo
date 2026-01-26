@@ -3,6 +3,25 @@ import { CartView } from './CartView'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { CartItem } from '@/store/cart'
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const translations: Record<string, string> = {
+      'title': '购物车',
+      'empty': '购物车空空如也',
+      'continueShopping': '去逛逛',
+      'summary': '订单摘要',
+      'subtotal': '商品总价',
+      'total': '总计',
+      'checkout': '前往结算',
+      'removeItem': '移除商品',
+      'decreaseQuantity': '减少数量',
+      'increaseQuantity': '增加数量'
+    }
+    return translations[key] || key
+  }
+}))
+
 const mockItems: CartItem[] = [
   {
     product: {

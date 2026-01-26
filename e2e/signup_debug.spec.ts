@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('user registration should succeed', async ({ page }) => {
-  await page.goto('/login');
+  await page.goto('/zh/login');
   
   await page.getByRole('button', { name: '立即注册' }).click();
   
@@ -12,7 +12,7 @@ test('user registration should succeed', async ({ page }) => {
   // Use specific selector for submit button
   await page.locator('button[type="submit"]', { hasText: '注册' }).click();
   
-  await expect(page).toHaveURL('/', { timeout: 10000 });
+  await expect(page).toHaveURL(/\/zh/, { timeout: 10000 });
   
   // Verify email in header
   const userEmail = page.getByRole('banner').getByText(testEmail.split('@')[0]);

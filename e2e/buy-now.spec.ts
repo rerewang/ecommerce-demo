@@ -7,14 +7,14 @@ test.describe('E2E Direct Buy Flow', () => {
   test('should allow user to buy now directly', async ({ page }) => {
     test.setTimeout(60000);
     // 1. Login
-    await page.goto('/login');
+    await page.goto('/zh/login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-    await expect(page).toHaveURL('/', { timeout: 10000 });
+    await expect(page).toHaveURL(/\/zh/, { timeout: 10000 });
 
     // 2. Navigate to products
-    await page.goto('/products');
+    await page.goto('/zh/products');
     
     // 3. Go to PDP
     // Find a product that is in stock (has "加入购物车" button in the card)
@@ -34,7 +34,7 @@ test.describe('E2E Direct Buy Flow', () => {
     await page.getByText('立即购买').click()
     
     // 6. Expect Checkout with direct source
-    await expect(page).toHaveURL(/checkout\?source=direct/)
+    await expect(page).toHaveURL(/\/zh\/checkout\?source=direct/)
     
     // 7. Verify Form appears (not empty cart)
     const nameField = page.getByLabel('姓名');
@@ -51,6 +51,6 @@ test.describe('E2E Direct Buy Flow', () => {
     await submitBtn.click();
     
     // 9. Expect Redirect to Order
-    await expect(page).toHaveURL(/\/orders\/.+/, { timeout: 15000 });
+    await expect(page).toHaveURL(/\/zh\/orders\/.+/, { timeout: 15000 });
   })
 })

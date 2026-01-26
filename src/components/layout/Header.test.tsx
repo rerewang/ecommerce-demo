@@ -2,6 +2,23 @@ import { render, screen } from '@testing-library/react'
 import { Header } from './Header'
 import { describe, it, expect, vi } from 'vitest'
 
+// Mock next-intl/server
+const messages: Record<string, string> = {
+  home: 'Home',
+  gallery: 'Gallery',
+  aiAssistant: 'AI Assistant',
+  new: 'New',
+  myOrders: 'My Orders',
+  admin: 'Admin',
+  signIn: 'Sign In',
+  signOut: 'Sign Out',
+  exit: 'Exit'
+}
+
+vi.mock('next-intl/server', () => ({
+  getTranslations: () => Promise.resolve((key: string) => messages[key] || key),
+}))
+
 // Mock MobileNav since it's tested separately
 vi.mock('./MobileNav', () => ({
   MobileNav: () => <div data-testid="mobile-nav">MobileNav</div>,

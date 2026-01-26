@@ -2,6 +2,22 @@ import { render, screen, fireEvent, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ProductFilterBar } from './ProductFilterBar'
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const translations: Record<string, string> = {
+      'searchPlaceholder': 'search products',
+      'categoryLabel': 'category',
+      'allCategories': 'All Categories',
+      'sortLabel': 'sort',
+      'sortNewest': 'Newest',
+      'sortPriceLow': 'Price: Low to High',
+      'sortPriceHigh': 'Price: High to Low'
+    }
+    return translations[key] || key
+  }
+}))
+
 describe('ProductFilterBar', () => {
   const mockOnFilterChange = vi.fn()
 

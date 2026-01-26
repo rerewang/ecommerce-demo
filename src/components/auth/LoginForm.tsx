@@ -4,10 +4,12 @@ import { useActionState, useState } from 'react'
 import { login, signup } from '@/app/[locale]/(shop)/login/actions'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { useTranslations } from 'next-intl'
 
 type FormState = { error?: string; success?: string } | null
 
 export function LoginForm() {
+  const t = useTranslations('Auth')
   const [mode, setMode] = useState<'login' | 'signup'>('login')
   
   const [state, formAction, isPending] = useActionState(async (_prev: FormState, formData: FormData): Promise<FormState> => {
@@ -22,16 +24,16 @@ export function LoginForm() {
     <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
       <div>
         <h2 className="mt-6 text-center text-3xl font-heading font-bold text-slate-900">
-          {mode === 'login' ? '登录账户' : '注册新账户'}
+          {mode === 'login' ? t('loginTitle') : t('registerTitle')}
         </h2>
         <p className="mt-2 text-center text-sm text-slate-600">
-          {mode === 'login' ? '还没有账户？' : '已有账户？'}
+          {mode === 'login' ? t('loginSubtitle') : t('registerSubtitle')}
           <button 
             type="button"
             onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
             className="ml-1 font-medium text-primary-600 hover:text-primary-500"
           >
-            {mode === 'login' ? '立即注册' : '去登录'}
+            {mode === 'login' ? t('switchToRegister') : t('switchToLogin')}
           </button>
         </p>
       </div>
@@ -40,7 +42,7 @@ export function LoginForm() {
         <div className="rounded-md shadow-sm space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
-              邮箱
+              {t('emailLabel')}
             </label>
             <Input
               id="email"
@@ -48,12 +50,12 @@ export function LoginForm() {
               type="email"
               autoComplete="email"
               required
-              placeholder="user@example.com"
+              placeholder={t('emailPlaceholder')}
             />
           </div>
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1">
-              密码
+              {t('passwordLabel')}
             </label>
             <Input
               id="password"
@@ -61,7 +63,7 @@ export function LoginForm() {
               type="password"
               autoComplete="current-password"
               required
-              placeholder="******"
+              placeholder={t('passwordPlaceholder')}
             />
           </div>
         </div>
@@ -84,7 +86,7 @@ export function LoginForm() {
             className="w-full"
             disabled={isPending}
           >
-            {isPending ? '处理中...' : (mode === 'login' ? '登录' : '注册')}
+            {isPending ? t('pending') : (mode === 'login' ? t('loginButton') : t('registerButton'))}
           </Button>
         </div>
       </form>

@@ -1,9 +1,12 @@
 import { ProductForm } from '@/components/admin/ProductForm'
+import { getTranslations } from 'next-intl/server'
 
-export default function NewProductPage() {
+export default async function NewProductPage() {
+  const t = await getTranslations('Admin')
+
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">新增商品</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('createProduct')}</h1>
       <ProductForm />
     </div>
   )

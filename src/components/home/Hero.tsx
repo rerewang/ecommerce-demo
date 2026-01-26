@@ -1,39 +1,50 @@
 import { Button } from "@/components/ui/Button"
 import Link from "next/link"
 import { Check } from "lucide-react"
+import { ReactNode } from "react"
 
-export function Hero() {
+interface HeroProps {
+  title: ReactNode
+  subtitle: string
+  cta: string
+  features: {
+    instant: string
+    quality: string
+    unique: string
+  }
+}
+
+export function Hero({ title, subtitle, cta, features }: HeroProps) {
   return (
     <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden bg-background">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10 flex flex-col items-center">
         <h1 className="text-4xl sm:text-5xl md:text-7xl font-serif font-black text-foreground mb-6 text-balance tracking-tight leading-[1.1]">
-          Masterpieces of <span className="text-primary italic block sm:inline">Your Pet</span>
+          {title}
         </h1>
         
         <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto text-balance leading-relaxed">
-          Transform your furry friend into timeless digital art. 
-          Museum-quality AI portraits, generated instantly.
+          {subtitle}
         </p>
 
         <ul className="flex flex-col sm:flex-row gap-3 sm:gap-6 mb-10 text-stone-600 justify-center">
           <li className="flex items-center gap-2">
             <Check className="w-5 h-5 text-success" />
-            <span>Instant Generation</span>
+            <span>{features.instant}</span>
           </li>
           <li className="flex items-center gap-2">
             <Check className="w-5 h-5 text-success" />
-            <span>Museum Quality</span>
+            <span>{features.quality}</span>
           </li>
           <li className="flex items-center gap-2">
             <Check className="w-5 h-5 text-success" />
-            <span>100% Unique</span>
+            <span>{features.unique}</span>
           </li>
         </ul>
 
         <div className="w-full sm:w-auto">
           <Link href="/products" className="block w-full sm:w-auto">
             <Button size="lg" className="w-full sm:w-auto rounded-xl px-10 py-6 text-lg bg-cta hover:bg-cta/90 shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all">
-              Create Your Art
+              {cta}
             </Button>
           </Link>
         </div>

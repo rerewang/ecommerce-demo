@@ -6,12 +6,14 @@ import { Card, CardContent, CardFooter } from '@/components/ui/Card'
 import { AddToCartButton } from '@/components/products/AddToCartButton'
 import { formatCurrency } from '@/lib/utils'
 import type { Product } from '@/types/product'
+import { useTranslations } from 'next-intl'
 
 export interface ProductCardProps {
   product: Product
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const t = useTranslations('Products.card')
   return (
     <Link href={`/products/${product.id}`}>
       <Card hover className="h-full flex flex-col">
@@ -45,7 +47,7 @@ export function ProductCard({ product }: ProductCardProps) {
               {formatCurrency(product.price)}
             </p>
             <p className="text-xs text-slate-500 mt-1">
-              库存: {product.stock}
+              {t('stock', { count: product.stock })}
             </p>
           </div>
         </CardContent>

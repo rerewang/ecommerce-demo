@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import type { Metadata } from 'next'
 import { ProductDetailClient } from './ProductDetailClient'
 import { ProductFeatures } from '@/components/products/ProductFeatures'
+import { getTranslations } from 'next-intl/server'
 
 export async function generateStaticParams() {
   const products = await getProducts()
@@ -19,15 +20,17 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params
   const product = await getProductById(id)
+  const t = await getTranslations('Products.detail')
+  const tHome = await getTranslations('HomePage')
   
   if (!product) {
     return {
-      title: '商品未找到',
+      title: t('notFoundTitle'),
     }
   }
 
   return {
-    title: `${product.name} - 电商 Demo`,
+    title: `${product.name} - ${tHome('title')}`,
     description: product.description,
   }
 }
@@ -35,6 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const product = await getProductById(id)
+  const t = await getTranslations('Products.detail')
   
   if (!product) {
     notFound()
@@ -48,7 +52,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
           <Link href="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              返回商品列表
+              {t('backToList')}
             </Button>
           </Link>
         </div>
@@ -83,7 +87,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             </p>
             
             <div className="mb-8">
-              <p className="text-sm text-slate-500 mb-2">价格</p>
+              <p className="text-sm text-slate-500 mb-2">{t('price')}</p>
               <p className="font-heading text-5xl font-bold text-primary-600">
                 {formatCurrency(product.price)}
               </p>
@@ -91,9 +95,9 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             
             <div className="mb-8 p-4 bg-slate-100 rounded-lg">
               <div className="flex items-center justify-between">
-                <span className="text-slate-700">库存状态</span>
+                <span className="text-slate-700">{t('stockStatus')}</span>
                 <span className={`font-medium ${product.stock > 0 ? 'text-success' : 'text-red-500'}`}>
-                  {product.stock > 0 ? `${product.stock} 件可售` : '已售罄'}
+                  {product.stock > 0 ? t('inStock', { count: product.stock }) : t('outOfStock')}
                 </span>
               </div>
             </div>

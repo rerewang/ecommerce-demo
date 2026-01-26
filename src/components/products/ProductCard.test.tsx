@@ -1,6 +1,17 @@
 import { render, screen } from '@testing-library/react'
 import { ProductCard } from './ProductCard'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
+
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const translations: Record<string, string> = {
+      'outOfStock': '已售罄',
+      'addToCart': '加入购物车'
+    }
+    return translations[key] || key
+  }
+}))
 
 const mockProduct = {
   id: '1',
