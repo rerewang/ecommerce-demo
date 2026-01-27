@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/Button';
 import { Languages } from 'lucide-react';
 import { startTransition } from 'react';
 import { updateUserLocale } from '@/app/actions/user';
+import { useSearchParams } from 'next/navigation';
 
 export function LanguageSwitcher() {
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   function onToggle() {
     const nextLocale = locale === 'en' ? 'zh' : 'en';
@@ -18,7 +20,11 @@ export function LanguageSwitcher() {
     updateUserLocale(nextLocale).catch(console.error);
 
     startTransition(() => {
-      router.replace(pathname, { locale: nextLocale });
+      // Preserve query params when switching locale
+      const params = new URLSearchParams(searchParams.toString());
+      const query = params.toString() ? `?${params.toString()}` : '';
+      
+      router.replace(`${pathname}${query}`, { locale: nextLocale });
     });
   }
 
