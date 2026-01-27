@@ -4,6 +4,8 @@ import { createServerClient } from '@supabase/ssr'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 
+export const dynamic = 'force-dynamic';
+
 export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ source?: string }> }) {
   const cookieStore = await cookies()
   const { source } = await searchParams
