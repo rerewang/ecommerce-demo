@@ -5,6 +5,12 @@ export async function translateQuery(query: string): Promise<string> {
   if (!query) return '';
 
   try {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      console.warn('Query translation disabled: Missing OPENAI_API_KEY');
+      return query;
+    }
+
     const { text } = await generateText({
       model: openai('gpt-4o'), // Or appropriate model
       system: `You are a search query optimizer for an e-commerce store.
