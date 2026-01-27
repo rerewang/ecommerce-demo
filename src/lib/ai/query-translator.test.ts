@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { translateQuery } from './query-translator';
 import { generateText } from 'ai';
 
@@ -10,6 +10,11 @@ vi.mock('ai', () => ({
 describe('translateQuery', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.stubEnv('OPENAI_API_KEY', 'test-key');
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 
   it('should translate Chinese query to English optimized for search', async () => {
