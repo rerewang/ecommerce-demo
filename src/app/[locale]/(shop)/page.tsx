@@ -4,6 +4,8 @@ import { StyleCategories } from "@/components/home/StyleCategories"
 import { HowItWorks } from "@/components/home/HowItWorks"
 import { getTranslations } from 'next-intl/server'
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const t = await getTranslations('HomePage')
 

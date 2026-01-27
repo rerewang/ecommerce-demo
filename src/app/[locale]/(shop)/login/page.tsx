@@ -2,6 +2,8 @@ import { LoginForm } from '@/components/auth/LoginForm'
 import { getTranslations } from 'next-intl/server'
 import { Metadata } from 'next'
 
+export const dynamic = 'force-dynamic';
+
 type Props = {
   params: Promise<{ locale: string }>
 }

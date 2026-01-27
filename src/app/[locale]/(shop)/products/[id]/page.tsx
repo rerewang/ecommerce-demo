@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { getProductById, getProducts } from '@/services/products'
+import { getProductById } from '@/services/products'
 import { formatCurrency } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -11,12 +11,7 @@ import { ProductFeatures } from '@/components/products/ProductFeatures'
 import { getLocalizedProduct } from '@/lib/i18n/product'
 import { getTranslations } from 'next-intl/server'
 
-export async function generateStaticParams() {
-  const products = await getProducts()
-  return products.map((product) => ({
-    id: product.id,
-  }))
-}
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
   const { id, locale } = await params
