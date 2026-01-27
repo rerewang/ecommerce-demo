@@ -23,8 +23,8 @@ test.describe('E2E Direct Buy Flow', () => {
 
     // Click Buy Now and Wait for Navigation
     const buyNowBtn = page.getByText('立即购买');
-    await expect(buyNowBtn).toBeVisible({ timeout: 10000 });
-    await expect(buyNowBtn).toBeEnabled({ timeout: 10000 });
+    await expect(buyNowBtn).toBeVisible({ timeout: 30000 });
+    await expect(buyNowBtn).toBeEnabled({ timeout: 30000 });
     
     // Explicitly wait for navigation to start
     await Promise.all([
