@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { searchProducts } from './products'
+import { generateEmbedding } from '@/lib/ai/embedding' // Import the mocked function
 
 vi.mock('@/lib/ai/embedding', () => ({
   generateEmbedding: vi.fn().mockResolvedValue([0.1, 0.2, 0.3])
@@ -42,6 +43,12 @@ describe('searchProducts', () => {
     mockRpc.mockResolvedValueOnce({ data: mockData, error: null })
 
     const result = await searchProducts('test query')
+
+    // Verify translateQuery was called
+    // (Implicitly tested by the query_text check below)
+
+    // Verify generateEmbedding was called with ORIGINAL query
+    expect(generateEmbedding).toHaveBeenCalledWith('test query')
 
     expect(mockRpc).toHaveBeenCalledWith('match_products_hybrid', expect.objectContaining({
       query_text: 'translated test query',

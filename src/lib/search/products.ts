@@ -11,11 +11,17 @@ import { Product } from '@/types/product'
 export async function searchProducts(query: string, matchCount = 10): Promise<Product[]> {
   if (!query) return []
 
-  // 1. Translate/Optimize query
+  // 1. Translate/Optimize query for FTS (Full Text Search)
+  // Since our FTS index is primarily English, we need to translate Chinese/other queries to English
+  // to get good keyword matching.
   const translatedQuery = await translateQuery(query)
 
-  // 2. Generate embedding for the translated query
-  const embedding = await generateEmbedding(translatedQuery)
+  // 2. Generate embedding from the ORIGINAL query
+  // We use the raw query for vector search because:
+  // a) Our embedding model (bge-m3) is multilingual
+  // b) Our product data contains both English and Chinese fields (name_zh, description_zh)
+  // c) This preserves the original semantic nuance that might be lost in translation
+  const embedding = await generateEmbedding(query)
 
   // Check if embedding is valid (not zero vector)
   const isZeroVector = embedding.every(v => v === 0)
