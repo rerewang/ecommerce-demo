@@ -57,7 +57,7 @@ export default async function HomePage({ searchParams }: PageProps) {
           <ProductFilterContainer />
         </div>
         
-        <ProductGrid products={products} />
+        <ProductGrid products={products} emptyMessage={t('empty')} />
       </main>
     </div>
   )

@@ -82,6 +82,7 @@
   "Products": {
     "title": "精选商品",
     "subtitle": "优质体验，安心购物",
+    "empty": "暂无商品",
     "addToCart": "加入购物车",
     "buyNow": "立即购买",
     "addedToCart": "已添加到购物车",

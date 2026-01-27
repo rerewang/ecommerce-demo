@@ -71,6 +71,10 @@ export function ProductForm({ initialData, isEdit }: Props) {
           <Input name="name" value={formData.name} onChange={handleChange} required />
         </div>
         <div className="space-y-2">
+          <label className="text-sm font-medium">{t('form.name') + ' (中文)'}</label>
+          <Input name="name_zh" value={formData.name_zh || ''} onChange={handleChange} />
+        </div>
+        <div className="space-y-2">
           <label className="text-sm font-medium">{t('form.category')}</label>
           <Input name="category" value={formData.category} onChange={handleChange} required />
         </div>
@@ -87,6 +91,16 @@ export function ProductForm({ initialData, isEdit }: Props) {
           <textarea 
             name="description" 
             value={formData.description} 
+            onChange={handleChange}
+            className="w-full rounded-md border border-slate-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            rows={4}
+          />
+        </div>
+        <div className="col-span-2 space-y-2">
+          <label className="text-sm font-medium">{t('form.description') + ' (中文)'}</label>
+          <textarea 
+            name="description_zh" 
+            value={formData.description_zh || ''} 
             onChange={handleChange}
             className="w-full rounded-md border border-slate-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
             rows={4}

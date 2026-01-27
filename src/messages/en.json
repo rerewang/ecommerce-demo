@@ -82,6 +82,7 @@
   "Products": {
     "title": "Featured Products",
     "subtitle": "Quality experience, shop with peace of mind",
+    "empty": "No products found",
     "addToCart": "Add to Cart",
     "buyNow": "Buy Now",
     "addedToCart": "Added to Cart",

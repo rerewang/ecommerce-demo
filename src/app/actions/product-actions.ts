@@ -20,9 +20,15 @@ export async function searchSemanticProductsAction(query: string) {
  */
 export async function createProductAction(input: CreateProductInput) {
   // 1. Generate embedding for the product
-  // Combine name, description, and features for rich context
-  const textContext = `${input.name}: ${input.description} ${input.metadata?.features ? JSON.stringify(input.metadata.features) : ''}`.trim()
-  const embedding = await generateEmbedding(textContext)
+     // Combine name, description, and features for rich context
+     const parts = [
+       `${input.name}: ${input.description}`,
+       input.name_zh,
+       input.description_zh,
+       input.metadata?.features ? JSON.stringify(input.metadata.features) : ''
+     ].filter(Boolean)
+     const textContext = parts.join(' ').trim()
+     const embedding = await generateEmbedding(textContext)
 
   // 2. Setup Supabase client
   const cookieStore = await cookies()
@@ -94,14 +100,22 @@ export async function updateProductAction(id: string, input: UpdateProductInput)
   }
 
   let embedding = undefined
-  if (input.name || input.description || input.metadata) {
+  if (input.name || input.description || input.metadata || input.name_zh || input.description_zh) {
      const name = input.name ?? oldProduct.name
      const description = input.description ?? oldProduct.description
+     const nameZh = input.name_zh ?? oldProduct.name_zh ?? ''
+     const descriptionZh = input.description_zh ?? oldProduct.description_zh ?? ''
      const metadata = input.metadata ?? oldProduct.metadata
-     
-     const textContext = `${name}: ${description} ${metadata?.features ? JSON.stringify(metadata.features) : ''}`.trim()
-     embedding = await generateEmbedding(textContext)
-  }
+      
+      const parts = [
+        `${name}: ${description}`,
+        nameZh,
+        descriptionZh,
+        metadata?.features ? JSON.stringify(metadata.features) : ''
+      ].filter(Boolean)
+      const textContext = parts.join(' ').trim()
+      embedding = await generateEmbedding(textContext)
+   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateData: any = { ...input }
@@ -166,7 +180,7 @@ export async function regenerateAllEmbeddingsAction() {
 
   for (const product of products) {
     try {
-      const textContext = `${product.name}: ${product.description} ${product.metadata?.features ? JSON.stringify(product.metadata.features) : ''}`.trim()
+      const textContext = `${product.name}: ${product.description} ${product.name_zh || ''} ${product.description_zh || ''} ${product.metadata?.features ? JSON.stringify(product.metadata.features) : ''}`.trim()
       const embedding = await generateEmbedding(textContext)
 
       await supabase

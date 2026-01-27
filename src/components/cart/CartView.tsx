@@ -7,10 +7,12 @@ import { Button } from '../ui/Button'
 import { useCartStore } from '@/store/cart'
 import { formatCurrency } from '@/lib/utils'
 import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
+import { getLocalizedProduct } from '@/lib/i18n/product'
 
 export function CartView() {
   const t = useTranslations('Cart')
+  const locale = useLocale()
   const [mounted, setMounted] = useState(false)
   const { items, removeItem, updateQuantity, getTotalPrice } = useCartStore()
 
@@ -46,24 +48,26 @@ export function CartView() {
     <div className="space-y-6">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="divide-y divide-slate-100">
-          {items.map(({ product, quantity }) => (
+          {items.map(({ product, quantity }) => {
+            const localizedProduct = getLocalizedProduct(product, locale)
+            return (
             <div key={product.id} className="p-6 hover:bg-slate-50 transition-colors">
               <div className="flex gap-4">
                 <div className="relative w-24 h-24 flex-shrink-0 rounded-lg overflow-hidden bg-slate-100">
                   <Image
-                    src={product.image_url}
-                    alt={product.name}
+                    src={localizedProduct.image_url}
+                    alt={localizedProduct.name}
                     fill
                     className="object-cover"
                   />
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-heading font-semibold text-slate-900 mb-1">{product.name}</h3>
-                  <p className="text-slate-600 text-sm mb-2 line-clamp-2">{product.description}</p>
+                  <h3 className="font-heading font-semibold text-slate-900 mb-1">{localizedProduct.name}</h3>
+                  <p className="text-slate-600 text-sm mb-2 line-clamp-2">{localizedProduct.description}</p>
                   <div className="flex items-center gap-4">
                     <span className="font-heading font-bold text-primary-600">
-                      {formatCurrency(product.price)}
+                      {formatCurrency(localizedProduct.price)}
                     </span>
                   </div>
                 </div>
@@ -97,7 +101,8 @@ export function CartView() {
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       </div>
 

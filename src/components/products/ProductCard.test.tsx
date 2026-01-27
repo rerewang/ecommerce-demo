@@ -10,7 +10,8 @@ vi.mock('next-intl', () => ({
       'addToCart': '加入购物车'
     }
     return translations[key] || key
-  }
+  },
+  useLocale: () => 'en'
 }))
 
 const mockProduct = {

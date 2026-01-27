@@ -5,6 +5,7 @@ import { usePathname, useRouter } from '@/i18n/routing';
 import { Button } from '@/components/ui/Button';
 import { Languages } from 'lucide-react';
 import { startTransition } from 'react';
+import { updateUserLocale } from '@/app/actions/user';
 
 export function LanguageSwitcher() {
   const locale = useLocale();
@@ -13,6 +14,9 @@ export function LanguageSwitcher() {
 
   function onToggle() {
     const nextLocale = locale === 'en' ? 'zh' : 'en';
+    
+    updateUserLocale(nextLocale).catch(console.error);
+
     startTransition(() => {
       router.replace(pathname, { locale: nextLocale });
     });

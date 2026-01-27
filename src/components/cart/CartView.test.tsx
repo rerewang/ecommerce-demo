@@ -19,7 +19,8 @@ vi.mock('next-intl', () => ({
       'increaseQuantity': '增加数量'
     }
     return translations[key] || key
-  }
+  },
+  useLocale: () => 'en'
 }))
 
 const mockItems: CartItem[] = [
