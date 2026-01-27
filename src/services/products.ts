@@ -6,7 +6,9 @@ const MOCK_PRODUCTS: Product[] = [
   { 
     id: '1', 
     name: 'iPhone 15 Pro', 
+    name_zh: 'iPhone 15 Pro',
     description: 'The ultimate iPhone.',
+    description_zh: '终极 iPhone 体验。',
     price: 999, 
     stock: 10, 
     category: 'Electronics',
@@ -23,7 +25,9 @@ const MOCK_PRODUCTS: Product[] = [
   { 
     id: '2', 
     name: 'Mechanical Keyboard', 
+    name_zh: '机械键盘',
     description: 'Clicky and tactile.',
+    description_zh: '清脆手感，触觉反馈。',
     price: 159, 
     stock: 20, 
     category: 'Accessories',
@@ -33,7 +37,9 @@ const MOCK_PRODUCTS: Product[] = [
   { 
     id: '3', 
     name: 'Smart Watch', 
+    name_zh: '智能手表',
     description: 'Stay connected.',
+    description_zh: '时刻保持连接。',
     price: 299, 
     stock: 15, 
     category: 'Wearables',
