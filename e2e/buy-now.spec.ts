@@ -1,17 +1,39 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 test.describe('E2E Direct Buy Flow', () => {
   const email = 'user@example.com';
   const password = '123456';
 
-  test('should allow user to buy now directly', async ({ page }) => {
-    test.setTimeout(60000);
-    // 1. Login
+  async function ensureLoggedIn(page: Page) {
     await page.goto('/zh/login');
     await page.getByLabel('邮箱').fill(email);
     await page.getByLabel('密码').fill(password);
     await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-    await expect(page).toHaveURL(/\/zh/, { timeout: 10000 });
+
+    const loggedIn = await page.waitForURL(/\/zh(\/)?$/, { timeout: 8000 }).then(() => true).catch(() => false);
+    if (loggedIn) return;
+
+    const hasError = await page.getByText('登录失败').isVisible().catch(() => false);
+    if (hasError) {
+      await page.getByText('立即注册').click();
+      await page.getByLabel('邮箱').fill(email);
+      await page.getByLabel('密码').fill(password);
+      await page.locator('button[type="submit"]').filter({ hasText: '注册' }).click();
+
+      const registered = await page.waitForURL(/\/zh(\/)?$/, { timeout: 8000 }).then(() => true).catch(() => false);
+      if (registered) return;
+
+      await page.getByText('去登录').click();
+      await page.getByLabel('邮箱').fill(email);
+      await page.getByLabel('密码').fill(password);
+      await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
+      await page.waitForURL(/\/zh(\/)?$/, { timeout: 10000 });
+    }
+  }
+
+  test('should allow user to buy now directly', async ({ page }) => {
+    test.setTimeout(60000);
+    await ensureLoggedIn(page);
 
     // 2. Navigate to products
     await page.goto('/zh/products');

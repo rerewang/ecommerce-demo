@@ -1,8 +1,35 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 test.describe('E2E Checkout Flow (Real User)', () => {
   const email = 'user@example.com';
   const password = '123456';
+
+  async function ensureLoggedIn(page: Page) {
+    await page.goto('/zh/login');
+    await page.getByLabel('邮箱').fill(email);
+    await page.getByLabel('密码').fill(password);
+    await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
+
+    const loggedIn = await page.waitForURL(/\/zh(\/)?$/, { timeout: 8000 }).then(() => true).catch(() => false);
+    if (loggedIn) return;
+
+    const hasError = await page.getByText('登录失败').isVisible().catch(() => false);
+    if (hasError) {
+      await page.getByText('立即注册').click();
+      await page.getByLabel('邮箱').fill(email);
+      await page.getByLabel('密码').fill(password);
+      await page.locator('button[type="submit"]').filter({ hasText: '注册' }).click();
+
+      const registered = await page.waitForURL(/\/zh(\/)?$/, { timeout: 8000 }).then(() => true).catch(() => false);
+      if (registered) return;
+
+      await page.getByText('去登录').click();
+      await page.getByLabel('邮箱').fill(email);
+      await page.getByLabel('密码').fill(password);
+      await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
+      await page.waitForURL(/\/zh(\/)?$/, { timeout: 10000 });
+    }
+  }
 
   test('should allow user to purchase items', async ({ page }) => {
     test.setTimeout(60000);
@@ -23,14 +50,7 @@ test.describe('E2E Checkout Flow (Real User)', () => {
       await dialog.accept();
     });
 
-    // 1. Login
-    await page.goto('/zh/login');
-    await page.getByLabel('邮箱').fill(email);
-    await page.getByLabel('密码').fill(password);
-    await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-    
-    // Should be redirected to home (with locale)
-    await expect(page).toHaveURL(/\/zh/, { timeout: 10000 });
+    await ensureLoggedIn(page);
     await page.goto('/zh/products');
 
     // 2. Add Item to Cart
