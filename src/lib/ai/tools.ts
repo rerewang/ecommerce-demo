@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { tool, type Tool, type ToolExecutionOptions } from 'ai';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { getOrderById, getUserOrders } from '@/services/orders';
 import { checkReturnEligibility as checkEligibilityService, createReturnRequest } from '@/services/returns';
 import { createAlert as createAlertService } from '@/services/alerts';
@@ -247,7 +247,6 @@ export const searchProducts = tool({
   inputSchema: searchParamsSchema,
   execute: async (
     args: z.infer<typeof searchParamsSchema>,
-    _options: ToolExecutionOptions,
   ): Promise<z.infer<typeof ProductSchema>[]> => {
     const { query } = args || {};
     const safeQuery = (query && query.trim()) ? query.trim() : '';
@@ -260,7 +259,7 @@ export const searchProducts = tool({
        // But for MVP, returning semantic matches is better than nothing.
        // The original match_products function in product-actions.ts didn't support category filtering yet (even though the SQL does).
        // Let's rely on the semantic search for now.
-       return products.slice(0, 5).map(p => ({
+       return products.slice(0, 5).map(p => ProductSchema.parse({
          id: p.id,
          name: p.name,
          description: p.description || '',
