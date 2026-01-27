@@ -64,7 +64,7 @@ export async function POST(req: Request) {
   };
 
   const boundAgent = new ToolLoopAgent({
-    model: openai.chat(process.env.AI_MODEL_NAME || 'deepseek-ai/DeepSeek-V3'),
+    model: openai(process.env.AI_MODEL_NAME || 'deepseek-ai/DeepSeek-V3'),
     instructions: SYSTEM_PROMPT,
     temperature: 0,
     toolChoice: 'auto',

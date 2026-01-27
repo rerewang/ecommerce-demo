@@ -3,9 +3,7 @@ import { SYSTEM_PROMPT } from '@/lib/ai/prompts';
 
 // Mock dependencies
 vi.mock('@/lib/ai/openai', () => ({
-  openai: {
-    chat: vi.fn(() => 'mock-model'),
-  },
+  openai: vi.fn(() => 'mock-model'),
 }));
 
 vi.mock('@/lib/supabase-server', () => ({
