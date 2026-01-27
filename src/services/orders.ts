@@ -6,12 +6,14 @@ interface OrderItemWithProduct extends OrderItem {
   product: {
     id: string
     name: string
+    name_zh?: string
     price: number
     image_url: string
     stock: number
     category: string
     created_at?: string
     description?: string
+    description_zh?: string
   } | null
 }
 
@@ -47,7 +49,9 @@ function mapToFrontendOrder(order: DatabaseOrder, items: OrderItemWithProduct[])
       product: {
         id: item.product?.id || item.product_id,
         name: item.product?.name || 'Unknown Product',
+        name_zh: item.product?.name_zh,
         description: item.product?.description || '', // Default empty string if undefined
+        description_zh: item.product?.description_zh,
         price: item.price_at_purchase,
         image_url: item.product?.image_url || '',
         stock: item.product?.stock || 0,

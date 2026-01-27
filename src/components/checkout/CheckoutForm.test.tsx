@@ -5,6 +5,30 @@ import { useCartStore } from '@/store/cart'
 import { supabase } from '@/lib/supabase'
 import * as ordersService from '@/services/orders'
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string, params?: { amount?: string }) => {
+    const translations: Record<string, string> = {
+      'contact': '联系信息',
+      'form.name': '姓名',
+      'shipping': '收货地址',
+      'form.address': '地址',
+      'form.city': '城市',
+      'form.zip': '邮编',
+      'payment': '支付方式',
+      'pay': `支付 ${params?.amount || ''}`,
+      'paying': '正在支付',
+      'creatingOrder': '创建订单中',
+      'emptyCart': '购物车为空',
+      'paymentMethods.alipay': '支付宝',
+      'paymentMethods.wechat': '微信支付',
+      'paymentMethods.card': '信用卡',
+      'total': '总计'
+    }
+    return translations[key] || key
+  }
+}))
+
 vi.mock('@/store/cart', () => ({
   useCartStore: vi.fn()
 }))

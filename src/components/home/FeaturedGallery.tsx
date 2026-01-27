@@ -1,7 +1,13 @@
 import { getProducts } from "@/services/products"
 import { ProductCard } from "@/components/products/ProductCard"
+import { ReactNode } from "react"
 
-export async function FeaturedGallery() {
+interface FeaturedGalleryProps {
+  title: ReactNode
+  subtitle: string
+}
+
+export async function FeaturedGallery({ title, subtitle }: FeaturedGalleryProps) {
   const products = await getProducts({ sort: 'newest' })
 
   return (
@@ -9,10 +15,10 @@ export async function FeaturedGallery() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-serif text-stone-900 mb-4">
-            Curated <span className="text-primary italic">Gallery</span>
+            {title}
           </h2>
           <p className="text-stone-600 max-w-2xl mx-auto">
-            Explore our latest AI-generated masterpieces. Each portrait is unique.
+            {subtitle}
           </p>
         </div>
         

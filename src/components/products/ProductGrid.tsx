@@ -6,7 +6,7 @@ export interface ProductGridProps {
   emptyMessage?: string
 }
 
-export function ProductGrid({ products, emptyMessage = '暂无商品' }: ProductGridProps) {
+export function ProductGrid({ products, emptyMessage = 'No products found' }: ProductGridProps) {
   if (products.length === 0) {
     return (
       <div className="text-center py-16">

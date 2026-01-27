@@ -2,6 +2,23 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { MobileNav } from './MobileNav'
 import { describe, it, expect, vi } from 'vitest'
 
+// Mock next-intl
+const messages: Record<string, string> = {
+  home: 'Home',
+  gallery: 'Gallery',
+  aiAssistant: 'AI Assistant',
+  new: 'New',
+  myOrders: 'My Orders',
+  admin: 'Admin',
+  adminDashboard: 'Admin Dashboard',
+  signIn: 'Sign In',
+  signOut: 'Sign Out'
+}
+
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => messages[key] || key,
+}))
+
 vi.mock('lucide-react', () => ({
   Menu: () => <div data-testid="menu-icon">Menu</div>,
   X: () => <div data-testid="close-icon">X</div>,
@@ -11,7 +28,11 @@ vi.mock('lucide-react', () => ({
   Search: () => <div data-testid="search-icon">Search</div>,
 }))
 
-vi.mock('@/app/(shop)/login/actions', () => ({
+vi.mock('./LanguageSwitcher', () => ({
+  LanguageSwitcher: () => <div data-testid="language-switcher">Lang</div>,
+}))
+
+vi.mock('@/app/[locale]/(shop)/login/actions', () => ({
   logout: vi.fn(),
 }))
 

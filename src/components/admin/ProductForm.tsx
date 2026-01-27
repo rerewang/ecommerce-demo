@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input'
 import { MetadataEditor } from './MetadataEditor'
 import { createProductAction, updateProductAction } from '@/app/actions/product-actions'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 import { toast } from 'react-hot-toast'
 
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function ProductForm({ initialData, isEdit }: Props) {
+  const t = useTranslations('Admin')
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<Partial<Product>>(initialData || {
@@ -43,11 +45,11 @@ export function ProductForm({ initialData, isEdit }: Props) {
         return
       }
       
-      toast.success('保存成功')
+      toast.success(t('form.saveSuccess'))
       router.refresh()
     } catch (error) {
       console.error('Failed to save product', error)
-      alert('保存失败')
+      alert(t('form.saveFailed'))
     } finally {
       setLoading(false)
     }
@@ -65,23 +67,27 @@ export function ProductForm({ initialData, isEdit }: Props) {
     <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl bg-white p-8 rounded-lg shadow">
       <div className="grid grid-cols-2 gap-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium">商品名称</label>
+          <label className="text-sm font-medium">{t('form.name')}</label>
           <Input name="name" value={formData.name} onChange={handleChange} required />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">分类</label>
+          <label className="text-sm font-medium">{t('form.name') + ' (中文)'}</label>
+          <Input name="name_zh" value={formData.name_zh || ''} onChange={handleChange} />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">{t('form.category')}</label>
           <Input name="category" value={formData.category} onChange={handleChange} required />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">价格</label>
+          <label className="text-sm font-medium">{t('form.price')}</label>
           <Input name="price" type="number" value={formData.price} onChange={handleChange} required />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">库存</label>
+          <label className="text-sm font-medium">{t('form.stock')}</label>
           <Input name="stock" type="number" value={formData.stock} onChange={handleChange} required />
         </div>
         <div className="col-span-2 space-y-2">
-          <label className="text-sm font-medium">描述</label>
+          <label className="text-sm font-medium">{t('form.description')}</label>
           <textarea 
             name="description" 
             value={formData.description} 
@@ -91,20 +97,33 @@ export function ProductForm({ initialData, isEdit }: Props) {
           />
         </div>
         <div className="col-span-2 space-y-2">
-          <label className="text-sm font-medium">图片 URL</label>
+          <label className="text-sm font-medium">{t('form.description') + ' (中文)'}</label>
+          <textarea 
+            name="description_zh" 
+            value={formData.description_zh || ''} 
+            onChange={handleChange}
+            className="w-full rounded-md border border-slate-300 p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+            rows={4}
+          />
+        </div>
+        <div className="col-span-2 space-y-2">
+          <label className="text-sm font-medium">{t('form.images')}</label>
           <Input name="image_url" value={formData.image_url} onChange={handleChange} required />
         </div>
       </div>
 
-      <MetadataEditor 
-        value={formData.metadata} 
-        onChange={(val) => setFormData(prev => ({ ...prev, metadata: val }))} 
-      />
+      <div className="space-y-2">
+        <label className="text-sm font-medium">{t('form.metadata')}</label>
+        <MetadataEditor 
+          value={formData.metadata} 
+          onChange={(val) => setFormData(prev => ({ ...prev, metadata: val }))} 
+        />
+      </div>
 
       <div className="flex justify-end gap-4">
-        <Button type="button" variant="secondary" onClick={() => router.back()}>取消</Button>
+        <Button type="button" variant="secondary" onClick={() => router.back()}>{t('form.cancel')}</Button>
         <Button type="submit" disabled={loading}>
-          {loading ? '保存中...' : '保存商品'}
+          {loading ? t('form.saving') : t('form.save')}
         </Button>
       </div>
     </form>

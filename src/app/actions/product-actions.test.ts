@@ -144,7 +144,8 @@ describe('Product Server Actions', () => {
 
       // Assert
       expect(mocks.translateQuery).toHaveBeenCalledWith(query);
-      expect(mocks.generateEmbedding).toHaveBeenCalledWith(`translated ${query}`);
+      // We now expect generateEmbedding to be called with the ORIGINAL query, not translated
+      expect(mocks.generateEmbedding).toHaveBeenCalledWith(query);
       expect(mocks.supabase.rpc).toHaveBeenCalledWith('match_products_hybrid', expect.objectContaining({
         query_text: `translated ${query}`,
         query_embedding: mockEmbedding,

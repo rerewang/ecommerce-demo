@@ -5,40 +5,70 @@ import type { Product, CreateProductInput, UpdateProductInput, ProductFilter } f
 const MOCK_PRODUCTS: Product[] = [
   { 
     id: '1', 
-    name: 'iPhone 15 Pro', 
-    description: 'The ultimate iPhone.',
-    price: 999, 
-    stock: 10, 
-    category: 'Electronics',
-    image_url: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569',
+    name: 'The Royal Paws', 
+    name_zh: '皇家爪印',
+    description: 'A majestic oil painting that transforms your pet into a 17th-century aristocrat.',
+    description_zh: '一幅庄严的油画，将您的宠物化身为17世纪的贵族。',
+    price: 149, 
+    stock: 50, 
+    category: 'Oil Painting',
+    image_url: 'https://images.unsplash.com/photo-1618172193622-ae2d025f4032?q=80&w=1000&auto=format&fit=crop',
     created_at: '2024-01-01T00:00:00Z',
     metadata: {
-      features: { "Chip": "A17 Pro", "Display": "6.1-inch" },
+      features: { "Style": "Renaissance", "Mood": "Majestic" },
       variants: [
-        { name: "Color", values: ["Natural Titanium", "Blue Titanium"] },
-        { name: "Storage", values: ["128GB", "256GB"] }
+        { name: "Size", values: ["12x16", "18x24", "24x36"] },
+        { name: "Frame", values: ["Gold", "Wood", "None"] }
       ]
     }
   },
   { 
     id: '2', 
-    name: 'Mechanical Keyboard', 
-    description: 'Clicky and tactile.',
-    price: 159, 
-    stock: 20, 
-    category: 'Accessories',
-    image_url: 'https://images.unsplash.com/photo-1587829741301-dc798b91add1',
+    name: 'Neon Whisker 2077', 
+    name_zh: '霓虹胡须 2077',
+    description: 'Dive into the future with this cyberpunk-inspired digital masterpiece.',
+    description_zh: '沉浸在这部受赛博朋克启发的数字杰作中。',
+    price: 89, 
+    stock: 100, 
+    category: 'Digital Art',
+    image_url: 'https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?q=80&w=1000&auto=format&fit=crop',
     created_at: '2024-01-02T00:00:00Z'
   },
   { 
     id: '3', 
-    name: 'Smart Watch', 
-    description: 'Stay connected.',
-    price: 299, 
-    stock: 15, 
-    category: 'Wearables',
-    image_url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30',
+    name: 'Pixar-Perfect Portrait', 
+    name_zh: '皮克斯萌宠肖像',
+    description: 'Bring the magic of 3D animation to your home.',
+    description_zh: '将3D动画的魔力带入您的家中。',
+    price: 129, 
+    stock: 75, 
+    category: 'Digital Art',
+    image_url: 'https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?q=80&w=1000&auto=format&fit=crop',
     created_at: '2024-01-03T00:00:00Z'
+  },
+  { 
+    id: '4', 
+    name: 'Pop Art Paws', 
+    name_zh: '波普爪爪',
+    description: 'Bold, colorful, and iconic. Inspired by Andy Warhol.',
+    description_zh: '大胆、多彩且具有标志性。受安迪·沃霍尔的启发。',
+    price: 79, 
+    stock: 120, 
+    category: 'Digital Art',
+    image_url: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?q=80&w=1000&auto=format&fit=crop',
+    created_at: '2024-01-04T00:00:00Z'
+  },
+  { 
+    id: '5', 
+    name: 'Ethereal Flow', 
+    name_zh: '缥缈流影',
+    description: 'A delicate watercolor painting that blends soft hues and fluid lines.',
+    description_zh: '一幅精致的水彩画，融合了柔和的色调和流畅的线条。',
+    price: 69, 
+    stock: 80, 
+    category: 'Watercolor',
+    image_url: 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=1000&auto=format&fit=crop',
+    created_at: '2024-01-05T00:00:00Z'
   }
 ]
 

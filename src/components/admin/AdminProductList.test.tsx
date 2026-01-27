@@ -3,6 +3,18 @@ import { AdminProductList } from './AdminProductList'
 import { describe, it, expect, vi } from 'vitest'
 import { getProducts } from '@/services/products'
 
+// Mock next-intl
+vi.mock('next-intl', () => ({
+  useTranslations: () => (key: string) => {
+    const translations: Record<string, string> = {
+      'loading': '加载中',
+      'products': '商品列表',
+      'deleteProduct': '删除商品'
+    }
+    return translations[key] || key
+  }
+}))
+
 vi.mock('@/lib/supabase', () => ({
   createClientComponentClient: vi.fn(() => ({})),
 }))

@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/Button'
 import { useCartStore } from '@/store/cart'
 import type { Product } from '@/types/product'
 import { cn } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 export interface AddToCartButtonProps {
   product: Product
 }
 
 export function AddToCartButton({ product }: AddToCartButtonProps) {
+  const t = useTranslations('Products')
   const [added, setAdded] = useState(false)
   const addItem = useCartStore(state => state.addItem)
   
@@ -37,12 +39,12 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
       {added ? (
         <div className="flex items-center animate-fade-in">
           <Check className="w-5 h-5 mr-2" />
-          已添加到购物车
+          {t('addedToCart')}
         </div>
       ) : (
         <>
           <ShoppingCart className="w-5 h-5 mr-2" />
-          {product.stock > 0 ? '加入购物车' : '已售罄'}
+          {product.stock > 0 ? t('addToCart') : t('outOfStock')}
         </>
       )}
     </Button>

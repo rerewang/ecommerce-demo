@@ -3,7 +3,7 @@
 import { ShoppingCart } from 'lucide-react'
 import { useCartStore } from '@/store/cart'
 import { useState, useEffect } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 
 export function CartBadge() {
   const [mounted, setMounted] = useState(false)

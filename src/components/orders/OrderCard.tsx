@@ -3,12 +3,14 @@ import { Order } from '@/types/order'
 import { formatCurrency } from '@/lib/utils'
 import { OrderStatusBadge } from './OrderStatusBadge'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
 
 interface OrderCardProps {
   order: Order
 }
 
 export function OrderCard({ order }: OrderCardProps) {
+  const t = useTranslations('Orders')
   // Get the first few items for preview
   const previewItems = order.items.slice(0, 3)
   const remainingCount = order.items.length - 3
@@ -22,7 +24,7 @@ export function OrderCard({ order }: OrderCardProps) {
         <div className="flex justify-between items-start mb-4">
           <div>
             <p className="text-xs text-slate-500 font-medium mb-1">
-              订单号 {order.id.slice(0, 8)}...
+              {t('orderNo')} {order.id.slice(0, 8)}...
             </p>
             <p className="text-sm text-slate-500">
               {new Date(order.createdAt).toLocaleDateString()} {new Date(order.createdAt).toLocaleTimeString()}
@@ -43,7 +45,7 @@ export function OrderCard({ order }: OrderCardProps) {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-xs text-slate-400">
-                  无图
+                  {t('noImage')}
                 </div>
               )}
             </div>
@@ -57,10 +59,10 @@ export function OrderCard({ order }: OrderCardProps) {
 
         <div className="flex justify-between items-end border-t border-slate-100 pt-4">
           <div className="text-sm text-slate-600">
-            共 {order.items.reduce((acc, item) => acc + item.quantity, 0)} 件商品
+            {t('totalItems', { count: order.items.reduce((acc, item) => acc + item.quantity, 0) })}
           </div>
           <div className="text-right">
-            <p className="text-xs text-slate-500 mb-1">实付金额</p>
+            <p className="text-xs text-slate-500 mb-1">{t('totalPaid')}</p>
             <p className="text-lg font-bold text-slate-900">{formatCurrency(order.total)}</p>
           </div>
         </div>

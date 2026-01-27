@@ -5,7 +5,7 @@ test('RBAC: customer cannot access admin', async ({ page }) => {
   const password = '123456';
 
   // 1. Go to Login
-  await page.goto('/login');
+  await page.goto('/zh/login');
   
   // 2. Login as customer
   await page.getByLabel('邮箱').fill(email);
@@ -13,12 +13,12 @@ test('RBAC: customer cannot access admin', async ({ page }) => {
   await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
   
   // Wait for login to complete (redirect to home)
-  await expect(page).toHaveURL('/', { timeout: 10000 });
+  await expect(page).toHaveURL(/\/zh/, { timeout: 10000 });
 
   // 3. Try to go to admin
-  await page.goto('/admin');
+  await page.goto('/zh/admin');
   
   // 4. Expect redirect to home (since user is not admin)
   // The middleware redirects non-admins to '/'
-  await expect(page).toHaveURL('/'); 
+  await expect(page).toHaveURL(/\/zh/); 
 });

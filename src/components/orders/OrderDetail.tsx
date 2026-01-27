@@ -11,6 +11,8 @@ import { Order } from '@/types/order'
 import { formatCurrency } from '@/lib/utils'
 import { OrderStatusBadge } from './OrderStatusBadge'
 import { Button } from '@/components/ui/Button'
+import { useLocale } from 'next-intl'
+import { getLocalizedProduct } from '@/lib/i18n/product'
 
 interface OrderDetailProps {
   orderId: string
@@ -24,6 +26,7 @@ function FormattedDate({ date }: { date: string }) {
 }
 
 export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
+  const locale = useLocale()
   const router = useRouter()
   const [order, setOrder] = useState<Order | null>(initialOrder || null)
   const [loading, setLoading] = useState(!initialOrder)
@@ -106,13 +109,15 @@ export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
               <h3 className="font-medium text-slate-900">商品清单</h3>
             </div>
             <div className="divide-y divide-slate-100">
-              {order.items.map((item) => (
+              {order.items.map((item) => {
+                const localizedProduct = getLocalizedProduct(item.product, locale)
+                return (
                 <div key={item.id} className="p-4 flex gap-4">
                   <div className="relative w-20 h-20 bg-slate-100 rounded-lg flex-shrink-0 overflow-hidden">
-                    {item.product?.image_url ? (
+                    {localizedProduct?.image_url ? (
                       <Image
-                        src={item.product.image_url}
-                        alt={item.product.name}
+                        src={localizedProduct.image_url}
+                        alt={localizedProduct.name}
                         fill
                         className="object-cover"
                       />
@@ -124,10 +129,10 @@ export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-slate-900 truncate">
-                      {item.product?.name}
+                      {localizedProduct?.name}
                     </h4>
                     <p className="text-sm text-slate-500 mb-1">
-                      {item.product?.category}
+                      {localizedProduct?.category}
                     </p>
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-sm text-slate-600">
@@ -139,7 +144,8 @@ export function OrderDetail({ orderId, initialOrder }: OrderDetailProps) {
                     </div>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         </div>

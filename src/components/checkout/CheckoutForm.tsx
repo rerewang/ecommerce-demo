@@ -11,6 +11,7 @@ import { formatCurrency } from '@/lib/utils'
 import { CreditCard, Smartphone, QrCode } from 'lucide-react'
 import { createClientComponentClient } from '@/lib/supabase'
 import type { CreateOrderInput } from '@/types/order'
+import { useTranslations } from 'next-intl'
 
 type PaymentMethod = 'alipay' | 'wechat' | 'card'
 
@@ -20,6 +21,7 @@ export interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ userId, source }: CheckoutFormProps) {
+  const t = useTranslations('Checkout')
   const router = useRouter()
   const cartStore = useCartStore()
   const checkoutStore = useCheckoutStore()
@@ -121,7 +123,7 @@ export function CheckoutForm({ userId, source }: CheckoutFormProps) {
       router.push(`/orders/${orderData.id}`)
     } catch (error) {
       console.error('Checkout error:', error)
-      const message = error instanceof Error ? error.message : '下单失败，请重试'
+      const message = error instanceof Error ? error.message : t('error')
       alert(message)
       setProcessingStep('idle')
     } finally {
@@ -130,45 +132,45 @@ export function CheckoutForm({ userId, source }: CheckoutFormProps) {
   }
 
   if (items.length === 0) {
-    return <div className="p-8 text-center text-slate-600">购物车为空，去挑选一些商品吧</div>
+    return <div className="p-8 text-center text-slate-600">{t('emptyCart')}</div>
   }
 
   return (
     <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-8">
       <div className="space-y-4">
-        <h3 className="text-lg font-medium text-slate-900">收货信息</h3>
+        <h3 className="text-lg font-medium text-slate-900">{t('shipping')}</h3>
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
-            姓名
+            {t('form.name')}
           </label>
-          <Input id="name" name="name" required placeholder="收货人姓名" />
+          <Input id="name" name="name" required placeholder={t('form.namePlaceholder')} />
         </div>
         
         <div>
           <label htmlFor="address" className="block text-sm font-medium text-slate-700 mb-1">
-            地址
+            {t('form.address')}
           </label>
-          <Input id="address" name="address" required placeholder="详细地址" />
+          <Input id="address" name="address" required placeholder={t('form.addressPlaceholder')} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label htmlFor="city" className="block text-sm font-medium text-slate-700 mb-1">
-              城市
+              {t('form.city')}
             </label>
-            <Input id="city" name="city" required placeholder="城市" />
+            <Input id="city" name="city" required placeholder={t('form.cityPlaceholder')} />
           </div>
           <div>
             <label htmlFor="zip" className="block text-sm font-medium text-slate-700 mb-1">
-              邮编
+              {t('form.zip')}
             </label>
-            <Input id="zip" name="zip" required placeholder="000000" />
+            <Input id="zip" name="zip" required placeholder={t('form.zipPlaceholder')} />
           </div>
         </div>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-medium text-slate-900">支付方式</h3>
+        <h3 className="text-lg font-medium text-slate-900">{t('payment')}</h3>
         <div className="grid grid-cols-3 gap-3">
           <button
             type="button"
@@ -180,7 +182,7 @@ export function CheckoutForm({ userId, source }: CheckoutFormProps) {
             }`}
           >
             <Smartphone className="w-6 h-6 mb-2" />
-            <span className="text-sm font-medium">支付宝</span>
+            <span className="text-sm font-medium">{t('paymentMethods.alipay')}</span>
           </button>
           <button
             type="button"
@@ -192,7 +194,7 @@ export function CheckoutForm({ userId, source }: CheckoutFormProps) {
             }`}
           >
             <QrCode className="w-6 h-6 mb-2" />
-            <span className="text-sm font-medium">微信支付</span>
+            <span className="text-sm font-medium">{t('paymentMethods.wechat')}</span>
           </button>
           <button
             type="button"
@@ -204,14 +206,14 @@ export function CheckoutForm({ userId, source }: CheckoutFormProps) {
             }`}
           >
             <CreditCard className="w-6 h-6 mb-2" />
-            <span className="text-sm font-medium">信用卡</span>
+            <span className="text-sm font-medium">{t('paymentMethods.card')}</span>
           </button>
         </div>
       </div>
 
       <div className="pt-4 border-t border-slate-200">
         <div className="flex justify-between mb-4 text-lg font-bold">
-          <span>总计</span>
+          <span>{t('total')}</span>
           <span>{formatCurrency(total)}</span>
         </div>
         
@@ -227,10 +229,10 @@ export function CheckoutForm({ userId, source }: CheckoutFormProps) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              {processingStep === 'creating_order' ? '创建订单中...' : '正在支付...'}
+              {processingStep === 'creating_order' ? t('creatingOrder') : t('paying')}
             </span>
           ) : (
-            `支付 ${formatCurrency(total)}`
+            t('pay', { amount: formatCurrency(total) })
           )}
         </Button>
       </div>

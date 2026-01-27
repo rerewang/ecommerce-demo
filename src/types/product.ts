@@ -13,7 +13,9 @@ export interface ProductMetadata {
 export interface Product {
   id: string
   name: string
+  name_zh?: string
   description: string
+  description_zh?: string
   price: number
   image_url: string
   stock: number
