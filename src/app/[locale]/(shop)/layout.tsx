@@ -1,12 +1,18 @@
 import { Header } from '@/components/layout/Header'
+import { setRequestLocale } from 'next-intl/server';
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
-export default function ShopLayout({
+export default async function ShopLayout({
   children,
+  params
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   return (
     <>
       <Header />

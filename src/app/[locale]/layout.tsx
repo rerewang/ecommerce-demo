@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Rubik, Nunito_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
+import { getMessages, setRequestLocale } from 'next-intl/server';
 import "../globals.css";
 import { ChatWidget } from "@/components/ai/ChatWidget";
+import { routing } from '@/i18n/routing';
+import { notFound } from 'next/navigation';
 
 const rubik = Rubik({
   subsets: ["latin"],
@@ -23,6 +25,10 @@ export const metadata: Metadata = {
   description: "Transform your pet into a masterpiece. Premium AI art generation.",
 };
 
+export function generateStaticParams() {
+  return routing.locales.map((locale) => ({locale}));
+}
+
 export default async function RootLayout({
   children,
   params
@@ -31,6 +37,12 @@ export default async function RootLayout({
   params: Promise<{ locale: string }>;
 }>) {
   const { locale } = await params;
+  // Ensure that the incoming `locale` is valid
+  if (!routing.locales.includes(locale as "en" | "zh")) {
+    notFound();
+  }
+  
+  setRequestLocale(locale);
   const messages = await getMessages();
 
   return (

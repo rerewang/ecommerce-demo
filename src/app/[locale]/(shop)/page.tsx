@@ -2,11 +2,13 @@ import { Hero } from "@/components/home/Hero"
 import { FeaturedGallery } from "@/components/home/FeaturedGallery"
 import { StyleCategories } from "@/components/home/StyleCategories"
 import { HowItWorks } from "@/components/home/HowItWorks"
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
-export const dynamic = 'force-dynamic';
+// export const dynamic = 'force-dynamic';
 
-export default async function HomePage() {
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale);
   const t = await getTranslations('HomePage')
 
   return (

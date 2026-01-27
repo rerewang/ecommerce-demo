@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
-import { getProductById } from '@/services/products'
+import { getProductById, getProducts } from '@/services/products'
 import { formatCurrency } from '@/lib/utils'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
@@ -9,12 +9,18 @@ import type { Metadata } from 'next'
 import { ProductDetailClient } from './ProductDetailClient'
 import { ProductFeatures } from '@/components/products/ProductFeatures'
 import { getLocalizedProduct } from '@/lib/i18n/product'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
-export const dynamic = 'force-dynamic';
+export async function generateStaticParams() {
+  const products = await getProducts()
+  return products.map((product) => ({
+    id: product.id,
+  }))
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string; locale: string }> }): Promise<Metadata> {
   const { id, locale } = await params
+  setRequestLocale(locale);
   const product = await getProductById(id)
   const t = await getTranslations('Products.detail')
   const tHome = await getTranslations('HomePage')
@@ -35,6 +41,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string; locale: string }> }) {
   const { id, locale } = await params
+  setRequestLocale(locale);
   const product = await getProductById(id)
   const t = await getTranslations('Products.detail')
   
