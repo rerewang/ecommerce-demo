@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
+import { Link } from '@/i18n/routing'
 import { Card, CardContent, CardFooter } from '@/components/ui/Card'
 import { AddToCartButton } from '@/components/products/AddToCartButton'
 import { formatCurrency } from '@/lib/utils'
