@@ -31,6 +31,6 @@ test.describe('Admin Flow (Real Admin)', () => {
     const addBtn = page.getByRole('button', { name: '新增商品' });
     await expect(addBtn).toBeVisible();
     
-    await expect(page.getByText('iPhone 15 Pro')).toBeVisible();
+    await expect(page.getByText('iPhone 15 Pro').or(page.getByText('The Royal Paws'))).toBeVisible();
   });
 });

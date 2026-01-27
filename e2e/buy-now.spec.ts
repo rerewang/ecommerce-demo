@@ -16,7 +16,7 @@ test.describe('E2E Direct Buy Flow', () => {
     await expect(page.getByText('商品参数')).toBeVisible({ timeout: 15000 }).catch(() => {});
 
     // Handle Variants (if any)
-    const colorBtn = page.getByRole('button', { name: 'Natural Titanium' });
+    const colorBtn = page.getByRole('button', { name: 'Size' });
     if (await colorBtn.isVisible()) {
       await colorBtn.click();
     }
