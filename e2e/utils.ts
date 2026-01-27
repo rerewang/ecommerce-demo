@@ -1,4 +1,4 @@
-import { type Page, expect } from '@playwright/test';
+import { type Page } from '@playwright/test';
 
 export async function ensureLoggedIn(page: Page, email = 'user@example.com', password = '123456', allowSignup = true) {
   await page.goto('/zh/login');
@@ -19,7 +19,7 @@ export async function ensureLoggedIn(page: Page, email = 'user@example.com', pas
       page.waitForSelector('text=登录失败', { timeout: 15000 })
     ]);
   } catch (e) {
-    console.log('Timeout waiting for login response');
+    console.log('Timeout waiting for login response', e);
   }
 
   if (page.url().match(/\/(zh|en)(\/)?$/)) {
