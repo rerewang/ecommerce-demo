@@ -148,6 +148,7 @@
   "Checkout": {
     "title": "Checkout",
     "pageTitle": "Fill Order Information",
+    "total": "Total",
     "contact": "Contact Information",
     "shipping": "Shipping Address",
     "payment": "Payment Method",

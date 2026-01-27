@@ -148,6 +148,7 @@
   "Checkout": {
     "title": "结算",
     "pageTitle": "填写订单信息",
+    "total": "总计",
     "contact": "联系方式",
     "shipping": "收货信息",
     "payment": "支付方式",
