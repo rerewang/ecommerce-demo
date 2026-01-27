@@ -4,6 +4,8 @@ import { openai } from './openai';
 export async function translateQuery(query: string): Promise<string> {
   if (!query) return '';
 
+  const modelName = process.env.AI_MODEL_NAME || 'gpt-4o';
+
   try {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
@@ -12,7 +14,7 @@ export async function translateQuery(query: string): Promise<string> {
     }
 
     const { text } = await generateText({
-      model: openai('gpt-4o'), // Or appropriate model
+      model: openai(modelName), // Or appropriate model
       system: `You are a search query optimizer for an e-commerce store.
 Your goal is to convert the user's raw query into a concise, English, keyword-rich search term that will match product names and descriptions best.
 - If the query is in Chinese (or other languages), translate it to English.
@@ -24,7 +26,7 @@ Your goal is to convert the user's raw query into a concise, English, keyword-ri
 
     return text.trim();
   } catch (error) {
-    console.error('Query translation failed:', error);
+    console.error(`Query translation failed (model: ${modelName}):`, error);
     return query; // Fallback to original query
   }
 }
