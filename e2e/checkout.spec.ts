@@ -1,36 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
+import { ensureLoggedIn } from './utils';
 
 test.describe('E2E Checkout Flow (Real User)', () => {
-  const email = 'user@example.com';
-  const password = '123456';
-
-  async function ensureLoggedIn(page: Page) {
-    await page.goto('/zh/login');
-    await page.getByLabel('邮箱').fill(email);
-    await page.getByLabel('密码').fill(password);
-    await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-
-    const loggedIn = await page.waitForURL(/\/zh(\/)?$/, { timeout: 8000 }).then(() => true).catch(() => false);
-    if (loggedIn) return;
-
-    const hasError = await page.getByText('登录失败').isVisible().catch(() => false);
-    if (hasError) {
-      await page.getByText('立即注册').click();
-      await page.getByLabel('邮箱').fill(email);
-      await page.getByLabel('密码').fill(password);
-      await page.locator('button[type="submit"]').filter({ hasText: '注册' }).click();
-
-      const registered = await page.waitForURL(/\/zh(\/)?$/, { timeout: 8000 }).then(() => true).catch(() => false);
-      if (registered) return;
-
-      await page.getByText('去登录').click();
-      await page.getByLabel('邮箱').fill(email);
-      await page.getByLabel('密码').fill(password);
-      await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-      await page.waitForURL(/\/zh(\/)?$/, { timeout: 10000 });
-    }
-  }
-
   test('should allow user to purchase items', async ({ page }) => {
     test.setTimeout(60000);
     const consoleMessages: { type: string; text: string }[] = [];
@@ -53,15 +24,12 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     await ensureLoggedIn(page);
     await page.goto('/zh/products');
 
-    // 2. Add Item to Cart
-    // Find a product that is in stock
     const productCard = page.locator('a').filter({ has: page.getByText('加入购物车') }).first();
     await expect(productCard).toBeVisible({ timeout: 10000 });
     
     await productCard.locator('button').filter({ hasText: '加入购物车' }).first().click();
     await expect(page.getByText('已添加到购物车')).toBeVisible();
 
-    // 3. Navigate to cart immediately (no page reload)
     await page.locator('a[href="/zh/cart"]').first().click();
     await expect(page).toHaveURL(/\/zh\/cart/);
     
@@ -71,7 +39,6 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     await checkoutLink.click();
     await page.waitForURL(/\/zh\/checkout/, { timeout: 10000 });
     
-    // 4. Fill shipping info
     await expect(page.getByText('正在验证登录状态...')).not.toBeVisible({ timeout: 5000 });
     await expect(page.getByText('购物车为空')).not.toBeVisible();
     
@@ -83,16 +50,12 @@ test.describe('E2E Checkout Flow (Real User)', () => {
     await page.getByLabel('城市').fill('Beijing');
     await page.getByLabel('邮编').fill('100000');
 
-    // 5. Pay (Simulate)
     const submitBtn = page.getByRole('button', { name: /支付 ¥/i });
     await expect(submitBtn).toBeVisible();
     await submitBtn.click();
 
-    // 6. Verify Order Success
     await expect(page).toHaveURL(/\/zh\/orders\/.+/, { timeout: 15000 });
     
-    // 7. Verify Order Details
-    // Use a more specific selector to avoid matching the "New" badge in the header
     const statusBadge = page.locator('main span.rounded-full').filter({ hasText: /待支付|Paid|Pending/i }).first();
     await expect(statusBadge).toBeVisible();
   });

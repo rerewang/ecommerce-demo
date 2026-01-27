@@ -1,50 +1,16 @@
 import { test, expect, type Page } from '@playwright/test';
+import { ensureLoggedIn } from './utils';
 
 test.describe('E2E Direct Buy Flow', () => {
-  const email = 'user@example.com';
-  const password = '123456';
-
-  async function ensureLoggedIn(page: Page) {
-    await page.goto('/zh/login');
-    await page.getByLabel('邮箱').fill(email);
-    await page.getByLabel('密码').fill(password);
-    await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-
-    const loggedIn = await page.waitForURL(/\/zh(\/)?$/, { timeout: 8000 }).then(() => true).catch(() => false);
-    if (loggedIn) return;
-
-    const hasError = await page.getByText('登录失败').isVisible().catch(() => false);
-    if (hasError) {
-      await page.getByText('立即注册').click();
-      await page.getByLabel('邮箱').fill(email);
-      await page.getByLabel('密码').fill(password);
-      await page.locator('button[type="submit"]').filter({ hasText: '注册' }).click();
-
-      const registered = await page.waitForURL(/\/zh(\/)?$/, { timeout: 8000 }).then(() => true).catch(() => false);
-      if (registered) return;
-
-      await page.getByText('去登录').click();
-      await page.getByLabel('邮箱').fill(email);
-      await page.getByLabel('密码').fill(password);
-      await page.locator('button[type="submit"]').filter({ hasText: '登录' }).click();
-      await page.waitForURL(/\/zh(\/)?$/, { timeout: 10000 });
-    }
-  }
-
   test('should allow user to buy now directly', async ({ page }) => {
     test.setTimeout(60000);
     await ensureLoggedIn(page);
 
-    // 2. Navigate to products
     await page.goto('/zh/products');
     
-    // 3. Go to PDP
-    // Find a product that is in stock (has "加入购物车" button in the card)
     const inStockProduct = page.locator('a').filter({ has: page.getByText('加入购物车') }).first();
     await inStockProduct.click();
     
-    // 4. Select variant if exists (Mock product 1 has variants)
-    // Wait for page to load
     await expect(page.getByText('商品参数')).toBeVisible({ timeout: 10000 }).catch(() => {});
 
     const colorBtn = page.getByRole('button', { name: 'Natural Titanium' })
@@ -52,17 +18,13 @@ test.describe('E2E Direct Buy Flow', () => {
       await colorBtn.click()
     }
 
-    // 5. Click Buy Now
     await page.getByText('立即购买').click()
     
-    // 6. Expect Checkout with direct source
     await expect(page).toHaveURL(/\/zh\/checkout\?source=direct/)
     
-    // 7. Verify Form appears (not empty cart)
     const nameField = page.getByLabel('姓名');
     await expect(nameField).toBeVisible();
     
-    // 8. Fill and Pay
     await nameField.fill('Direct User');
     await page.getByLabel('地址').fill('Direct St');
     await page.getByLabel('城市').fill('Direct City');
@@ -72,7 +34,6 @@ test.describe('E2E Direct Buy Flow', () => {
     await expect(submitBtn).toBeVisible();
     await submitBtn.click();
     
-    // 9. Expect Redirect to Order
     await expect(page).toHaveURL(/\/zh\/orders\/.+/, { timeout: 15000 });
   })
 })
